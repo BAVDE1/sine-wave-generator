@@ -208,8 +208,8 @@ class Input:
         self._active = active
         self.int_only = int_only
 
-        self.max_value = max_val
-        self.min_value = min_val
+        self.max = max_val
+        self.min = min_val
         self.max_value_chars = max_value_chars
 
         self.selected = True
@@ -259,10 +259,10 @@ class Input:
 
     def validate_input(self):
         if self.int_only:
-            self.value = self.validator(min(self.max_value, max(self.min_value, int(self.value if self.value else 0))))
+            self.value = self.validator(min(self.max, max(self.min, int(self.value if self.value else 0))))
 
     def mouse_down(self):
-        if self.is_mouse_in_bounds() and not self._hidden and self._active:
+        if self.is_mouse_in_input_bounds() and not self._hidden and self._active:
             self.selected = True
             return
         self.de_select()
@@ -276,7 +276,7 @@ class Input:
     def render(self, screen: pg.Surface):
         if not self._hidden:
             pg.draw.rect(screen, self.get_col((50, 50, 50)), self.box_bounds)
-            self.mouse_hover(screen)
+            self.mouse_input_hover(screen)
 
             if self.selected:
                 pg.draw.rect(screen, (255, 255, 255), self.box_bounds, 2)
@@ -286,11 +286,64 @@ class Input:
             value_text = self.font.render(self.value, True, self.get_col())
             screen.blit(value_text, pg.Vector2(get_middle(self.box_bounds.x, self.box_bounds.width, value_text.get_width()), self.box_bounds.y))
 
-    def mouse_hover(self, screen: pg.Surface):
-        if self.is_mouse_in_bounds():
+    def mouse_input_hover(self, screen: pg.Surface):
+        if self.is_mouse_in_input_bounds():
             pg.draw.rect(screen, self.get_col((100, 100, 100)), self.box_bounds)
 
-    def is_mouse_in_bounds(self):
+    def is_mouse_in_input_bounds(self):
         mp = pg.Vector2(pg.mouse.get_pos()) / GameValues.RES_MUL
         return (self.box_bounds.x < mp.x < self.box_bounds.x + self.box_bounds.width
                 and self.box_bounds.y < mp.y < self.box_bounds.y + self.box_bounds.height)
+
+
+class InputRange(Input):
+    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), margin=5,
+                 default_val=5, max_val=10, min_val=0, hidden=False, active=True, validator=str,
+                 horizontal=True, line_length=100, line_thickness=3, thumb_radius=6, line_margin=10):
+        super().__init__(text, pos, operation, text_size, text_col, len(str(max_val)), True, margin, default_val,
+                         max_val, min_val, hidden, active, validator)
+        self.horizontal = horizontal
+        self.line_length = line_length
+        self.line_thickness = line_thickness
+        self.line_margin = line_margin
+
+        self.thumb_radius = thumb_radius
+
+        self.range_selected = False
+
+    def mouse_down(self):
+        super().mouse_down()
+        if self.is_mouse_in_thumb_bounds() and not self.range_selected:
+            self.range_selected = True
+            print('mouse down', self.range_selected)
+
+    def mouse_up(self):
+        if self.range_selected:
+            self.range_selected = False
+            print('mouse up', self.range_selected)
+
+    def get_positions(self):
+        """ Returns: line start, line end, thumb pos """
+        mid = self.box_bounds.x + (self.box_bounds.width / 2)
+        ll = self.line_length / 2
+        y = self.box_bounds.y + self.box_bounds.height + self.line_margin + self.thumb_radius
+        thumb_x = mid + (((int(self.value) - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
+        return pg.Vector2(mid - ll, y), pg.Vector2(mid + ll, y),  pg.Vector2(thumb_x, y)
+
+    def render(self, screen: pg.Surface):
+        super().render(screen)
+        if not self._hidden:
+            start, end, thumb_pos = self.get_positions()
+
+            pg.draw.line(screen, self.colour, start, end, width=self.line_thickness)  # line
+            pg.draw.circle(screen, self.colour, thumb_pos, radius=self.thumb_radius)  # thumb
+
+            if self.is_mouse_in_thumb_bounds():
+                pass
+                # print('mouse hover')
+
+    def mouse_thumb_hover(self, screen: pg.Surface):
+        pass
+
+    def is_mouse_in_thumb_bounds(self):
+        return True
