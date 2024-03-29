@@ -254,12 +254,14 @@ class Input:
             self.operation.perform_operation(int(self.value) if self.int_only else self.value)
 
     def change_value(self, new_value):
-        self.value = new_value
-        self.validate_input()
+        self.validate_input(new_value)
 
-    def validate_input(self):
+    def validate_input(self, new_val=None):
+        new_val = new_val if new_val is not None else self.value
         if self.int_only:
-            self.value = self.validator(min(self.max, max(self.min, int(self.value if self.value else 0))))
+            self.value = self.validator(min(self.max, max(self.min, int(new_val if new_val else 0))))  # new val if not None
+            return int(self.value)
+        return self.value
 
     def mouse_down(self):
         if self.is_mouse_in_input_bounds() and not self._hidden and self._active:
@@ -311,15 +313,17 @@ class InputRange(Input):
         self.range_selected = False
         self.update_live = update_live
 
-    def change_range_value(self, new_value):
-        self.value = round(new_value)
-        self.validate_input()
+    def change_range_value(self, new_val):
+        old_val = int(self.value)
+        new_val = self.validate_input(round(new_val))
+        if self.update_live and old_val != new_val:
+            self.operation.perform_operation(new_val)
 
     def de_select(self):
         if self.selected or self.range_selected:
             self.selected = False
             self.validate_input()
-            self.operation.perform_operation(int(self.value) if self.int_only else self.value)
+            self.operation.perform_operation(int(self.value))
 
     def mouse_down(self):
         super().mouse_down()
@@ -336,7 +340,7 @@ class InputRange(Input):
         mid = self.box_bounds.x + (self.box_bounds.width / 2)
         ll = self.line_length / 2
         y = self.box_bounds.y + self.box_bounds.height + self.line_margin + self.thumb_radius
-        val = max(self.min, min(self.max, int(self.value)))
+        val = max(self.min, min(self.max, int(self.value if self.value else 0)))  # value if not None
         thumb_x = mid + (((val - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
         return pg.Vector2(mid - ll, y), pg.Vector2(mid + ll, y),  pg.Vector2(thumb_x, y)
 

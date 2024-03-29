@@ -17,8 +17,8 @@ class Game:
         self.canvas_screen = pg.Surface(pg.Vector2(GameValues.SCREEN_WIDTH, GameValues.SCREEN_HEIGHT))
         self.final_screen = pg.display.get_surface()
 
-        self.input_range = InputRange("a number", pg.Vector2(200, 100), InputOperation(test), text_size=20)
-        self.input_range2 = InputRange("another number", pg.Vector2(300, 300), InputOperation(test), text_size=20, min_val=53, max_val=87, default_val=60)
+        self.input_range = InputRange("a number", pg.Vector2(200, 100), InputOperation(test), text_size=20, update_live=True)
+        self.input_range2 = InputRange("another number", pg.Vector2(300, 300), InputOperation(test), text_size=20, min_val=53, max_val=87, default_val=60, update_live=True)
 
     def events(self):
         for event in pg.event.get():
