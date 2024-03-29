@@ -298,36 +298,46 @@ class Input:
 
 class InputRange(Input):
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), margin=5,
-                 default_val=5, max_val=10, min_val=0, hidden=False, active=True, validator=str,
-                 horizontal=True, line_length=100, line_thickness=3, thumb_radius=6, line_margin=10):
+                 default_val=5, max_val=10, min_val=0, hidden=False, active=True,
+                 line_length=100, line_thickness=3, thumb_radius=6, line_margin=10, update_live=False):
         super().__init__(text, pos, operation, text_size, text_col, len(str(max_val)), True, margin, default_val,
-                         max_val, min_val, hidden, active, validator)
-        self.horizontal = horizontal
+                         max_val, min_val, hidden, active)
+        self.min = min(max_val - 1, min_val)
         self.line_length = line_length
         self.line_thickness = line_thickness
         self.line_margin = line_margin
-
         self.thumb_radius = thumb_radius
 
         self.range_selected = False
+        self.update_live = update_live
+
+    def change_range_value(self, new_value):
+        self.value = round(new_value)
+        self.validate_input()
+
+    def de_select(self):
+        if self.selected or self.range_selected:
+            self.selected = False
+            self.validate_input()
+            self.operation.perform_operation(int(self.value) if self.int_only else self.value)
 
     def mouse_down(self):
         super().mouse_down()
-        if self.is_mouse_in_thumb_bounds() and not self.range_selected:
+        if self.is_mouse_in_thumb_bounds(self.get_positions()[2]) and not self.range_selected:
             self.range_selected = True
-            print('mouse down', self.range_selected)
 
     def mouse_up(self):
         if self.range_selected:
+            self.de_select()
             self.range_selected = False
-            print('mouse up', self.range_selected)
 
     def get_positions(self):
         """ Returns: line start, line end, thumb pos """
         mid = self.box_bounds.x + (self.box_bounds.width / 2)
         ll = self.line_length / 2
         y = self.box_bounds.y + self.box_bounds.height + self.line_margin + self.thumb_radius
-        thumb_x = mid + (((int(self.value) - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
+        val = max(self.min, min(self.max, int(self.value)))
+        thumb_x = mid + (((val - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
         return pg.Vector2(mid - ll, y), pg.Vector2(mid + ll, y),  pg.Vector2(thumb_x, y)
 
     def render(self, screen: pg.Surface):
@@ -338,12 +348,20 @@ class InputRange(Input):
             pg.draw.line(screen, self.colour, start, end, width=self.line_thickness)  # line
             pg.draw.circle(screen, self.colour, thumb_pos, radius=self.thumb_radius)  # thumb
 
-            if self.is_mouse_in_thumb_bounds():
-                pass
-                # print('mouse hover')
+            # update selected / hover
+            col = Colours.BLACK if self.range_selected else Colours.LIGHT_GREY
+            if self.is_mouse_in_thumb_bounds(thumb_pos) or self.range_selected:
+                pg.draw.circle(screen, col, thumb_pos, radius=self.thumb_radius - 2)
+    
+    def update(self):
+        if self.range_selected:
+            mp_x = pg.mouse.get_pos()[0]
+            start, end = self.get_positions()[:2]
+            percent = -((mp_x - start.x) / (start.x - end.x))
+            val = self.min + ((self.max - self.min) * percent)
+            self.change_range_value(val)
 
-    def mouse_thumb_hover(self, screen: pg.Surface):
-        pass
-
-    def is_mouse_in_thumb_bounds(self):
-        return True
+    def is_mouse_in_thumb_bounds(self, thumb_pos):
+        mp_x, mp_y = pg.mouse.get_pos()
+        return (thumb_pos.x - self.thumb_radius < mp_x < thumb_pos.x + self.thumb_radius
+                and thumb_pos.y - self.thumb_radius < mp_y < thumb_pos.y + self.thumb_radius)

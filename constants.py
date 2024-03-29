@@ -21,4 +21,6 @@ class Colours:
     WHITE = (255, 255, 255)
     GREEN = (100, 255, 100)
     RED = (255, 100, 100)
+    LIGHT_GREY = (150, 150, 150)
     GREY = (100, 100, 100)
+    BLACK = (0, 0, 0)

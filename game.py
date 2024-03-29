@@ -18,12 +18,15 @@ class Game:
         self.final_screen = pg.display.get_surface()
 
         self.input_range = InputRange("a number", pg.Vector2(200, 100), InputOperation(test), text_size=20)
+        self.input_range2 = InputRange("another number", pg.Vector2(300, 300), InputOperation(test), text_size=20, min_val=53, max_val=87, default_val=60)
 
     def events(self):
         for event in pg.event.get():
             # key input
             if event.type == pg.KEYDOWN:
                 self.keys = pg.key.get_pressed()
+                self.input_range.key_input(event.key)
+                self.input_range2.key_input(event.key)
 
             if event.type == pg.KEYUP:
                 self.keys = pg.key.get_pressed()
@@ -35,12 +38,15 @@ class Game:
             # mouse
             if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
                 self.input_range.mouse_down()
+                self.input_range2.mouse_down()
 
             if event.type == pg.MOUSEBUTTONUP and not pg.mouse.get_pressed()[0]:
                 self.input_range.mouse_up()
+                self.input_range2.mouse_up()
 
     def update(self):
-        pass
+        self.input_range.update()
+        self.input_range2.update()
 
     def render(self):
         self.final_screen.fill(Colours.BG_COL)
@@ -48,6 +54,7 @@ class Game:
 
         # render here
         self.input_range.render(self.canvas_screen)
+        self.input_range2.render(self.canvas_screen)
 
         # final
         scaled = pg.transform.scale(self.canvas_screen, pg.Vector2(GameValues.SCREEN_WIDTH * GameValues.RES_MUL, GameValues.SCREEN_HEIGHT * GameValues.RES_MUL))
