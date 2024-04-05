@@ -109,22 +109,32 @@ class Button:
         self.colour: pg.Color = pg.Color(colour)
         self.outline = outline
 
-        display_text = self.font.render(text, True, colour)
-        self.size = pg.Vector2(display_text.get_width() + self.margin, display_text.get_height() + self.margin)
-
         self.pos = pos
-        self.bounds: pg.Rect = pg.Rect(pos.x + self.margin, pos.y + self.margin, self.size.x, self.size.y)
+        self.override_size = None
         if override_size:
-            self.bounds.size = override_size
-            self.size = pg.Vector2(self.bounds.size)
+            self.override_size = pg.Vector2(override_size)
         self.mouse_offset = pg.Vector2(0, 0)
 
-        self.text_pos = pg.Vector2(self.bounds.topleft) + pg.Vector2(self.margin * .5)
+    def get_text_pos(self):
+        return pg.Vector2(self.get_bounds().topleft) + pg.Vector2(self.margin * .5)
+
+    def get_text(self):
+        return self.text
+
+    def get_size(self):
+        if self.override_size:
+            return self.override_size
+        fnt = self.font.render(self.get_text(), True, self.colour)
+        return pg.Vector2(fnt.get_width() + self.margin, fnt.get_height() + self.margin)
+
+    def get_bounds(self):
+        b = pg.Rect(self.pos.x + self.margin, self.pos.y + self.margin, self.get_size().x, self.get_size().y)
+        if self.override_size:
+            b.size = self.override_size
+        return b
 
     def change_pos(self, new_pos: pg.Vector2):
         self.pos = new_pos
-        self.bounds = pg.Rect(new_pos.x + self.margin, new_pos.y + self.margin, self.size.x, self.size.y)
-        self.text_pos = pg.Vector2(self.bounds.topleft) + pg.Vector2(self.margin * .5)
 
     def change_mouse_offset(self, new_off: pg.Vector2):
         self.mouse_offset = new_off
@@ -148,12 +158,12 @@ class Button:
 
             # outline
             if self.outline:
-                pg.draw.rect(screen, self.get_col(), self.bounds, self.outline)
+                pg.draw.rect(screen, self.get_col(), self.get_bounds(), self.outline)
 
-            screen.blit(self.font.render(self.text, True, self.get_col()), self.text_pos)
+            screen.blit(self.font.render(self.get_text(), True, self.get_col()), self.get_text_pos())
 
     def get_mouse_bounds(self):
-        return pg.Rect(self.bounds.topleft + self.mouse_offset, self.bounds.size)
+        return pg.Rect(self.get_bounds().topleft + self.mouse_offset, self.get_bounds().size)
 
     def get_operation(self):
         if self.is_mouse_in_bounds():
@@ -161,7 +171,7 @@ class Button:
 
     def mouse_hover(self, screen: pg.Surface):
         if self.is_mouse_in_bounds():
-            pg.draw.rect(screen, self.get_col((50, 50, 50)), self.bounds)
+            pg.draw.rect(screen, self.get_col((50, 50, 50)), self.get_bounds())
 
     def is_mouse_in_bounds(self):
         mp = pg.Vector2(pg.mouse.get_pos()) / GameValues.RES_MUL
@@ -178,10 +188,17 @@ class Button:
 
 
 class ButtonToggle(Button):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, text, pos: pg.Vector2, operation: BTNOperation,
+                 text_size=30, colour=(255, 255, 0), text_margin=5,
+                 override_size: pg.Vector2 | None = None, outline=0,
+                 hidden=False, active=True, toggled_text=""):
         self.toggle_col = (255, 255, 255)
         self.toggled = False
+        self.toggled_text = toggled_text if toggled_text else text
+        super().__init__(text, pos, operation, text_size, colour, text_margin, override_size, outline, hidden, active)
+
+    def get_text(self):
+        return self.toggled_text if self.toggled else self.text
 
     def perform_operation(self):
         super().perform_operation()
@@ -191,7 +208,7 @@ class ButtonToggle(Button):
     def render(self, screen: pg.Surface):
         super().render(screen)
         if self.toggled:
-            pg.draw.rect(screen, self.toggle_col, self.bounds, 1)
+            pg.draw.rect(screen, self.toggle_col, self.get_bounds(), 1)
 
 
 class Input:
@@ -301,12 +318,12 @@ class Input:
 class InputRange(Input):
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), margin=5,
                  default_val=5, max_val=10, min_val=0, hidden=False, active=True,
-                 line_length=100, line_thickness=3, thumb_radius=6, line_margin=10, update_live=False):
+                 line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
         super().__init__(text, pos, operation, text_size, text_col, len(str(max_val)), True, margin, default_val,
                          max_val, min_val, hidden, active)
         self.min = min(max_val - 1, min_val)
         self.line_length = line_length
-        self.line_thickness = line_thickness
+        self.line_width = line_width
         self.line_margin = line_margin
         self.thumb_radius = thumb_radius
 
@@ -349,19 +366,19 @@ class InputRange(Input):
         if not self._hidden:
             start, end, thumb_pos = self.get_positions()
 
-            pg.draw.line(screen, self.colour, start, end, width=self.line_thickness)  # line
+            pg.draw.line(screen, self.colour, start, end, width=self.line_width)  # line
             pg.draw.circle(screen, self.colour, thumb_pos, radius=self.thumb_radius)  # thumb
 
             # update selected / hover
-            col = Colours.BLACK if self.range_selected else Colours.LIGHT_GREY
             if self.is_mouse_in_thumb_bounds(thumb_pos) or self.range_selected:
-                pg.draw.circle(screen, col, thumb_pos, radius=self.thumb_radius - 2)
+                width = self.thumb_radius if self.range_selected else math.ceil(self.thumb_radius / 4)
+                pg.draw.circle(screen, Colours.BLACK, thumb_pos, width=width, radius=self.thumb_radius - 2)
     
     def update(self):
         if self.range_selected:
             mp_x = pg.mouse.get_pos()[0]
             start, end = self.get_positions()[:2]
-            percent = -((mp_x - start.x) / (start.x - end.x))
+            percent = ((mp_x - start.x) / (end.x - start.x))
             val = self.min + ((self.max - self.min) * percent)
             self.change_range_value(val)
 
