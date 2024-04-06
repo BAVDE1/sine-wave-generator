@@ -95,12 +95,12 @@ class Collection:
 
 class Button:
     def __init__(self, text, pos: pg.Vector2, operation: BTNOperation,
-                 text_size=30, colour=(255, 255, 0), text_margin=5,
+                 text_size=30, colour=(255, 255, 0), margin=5,
                  override_size: pg.Vector2 | None = None, outline=0,
                  hidden=False, active=True, mouse_offset=pg.Vector2(0, 0)):
         self.font = pg.font.SysFont(GameValues.FONT, text_size)
 
-        self.margin = text_margin
+        self.margin = margin
         self.operation = operation
         self._hidden = hidden
         self._active = active
@@ -223,12 +223,12 @@ class ButtonToggle(Button):
 
 class Input:
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation,
-                 text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50), max_value_chars=3, int_only=False, margin=5,
+                 text_size=20, colour=(255, 255, 0), bg_col=(50, 50, 50), max_value_chars=3, int_only=False, margin=5,
                  default_val="", max_val=0, min_val=0, hidden=False, active=True, validator=str, mouse_offset=pg.Vector2(0, 0)):
         self.font = pg.font.SysFont(GameValues.FONT, text_size)
 
         self.text = text
-        self.colour: pg.Color = pg.Color(text_col)
+        self.colour: pg.Color = pg.Color(colour)
         self.bg_col = bg_col
         self.margin = margin
         self.operation = operation
@@ -246,7 +246,7 @@ class Input:
         self.mouse_offset = mouse_offset
 
         self.box_bounds = pg.Rect(pos.x, text_size + pos.y + margin, (text_size * max_value_chars) * 0.8, text_size + margin)
-        display_text = self.font.render(text, True, text_col)
+        display_text = self.font.render(text, True, colour)
         self.text_pos = pg.Vector2(get_middle(pos.x, self.box_bounds.width, display_text.get_width()), pos.y)
 
         self.de_select()  # load defaults
@@ -335,10 +335,10 @@ class Input:
 
 class InputRange(Input):
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation,
-                 text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50), margin=5,
+                 text_size=20, colour=(255, 255, 0), bg_col=(50, 50, 50), margin=5,
                  default_val="", max_val=0, min_val=0, hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
                  line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
-        super().__init__(text, pos, operation, text_size, text_col, bg_col, len(str(max_val)), True, margin, default_val,
+        super().__init__(text, pos, operation, text_size, colour, bg_col, len(str(max_val)), True, margin, default_val,
                          max_val, min_val, hidden, active, str, mouse_offset)
         self.min = min(max_val - 1, min_val)
         self.line_length = line_length
@@ -420,14 +420,14 @@ class InputRange(Input):
 
 class InputRangeH(InputRange):
     """ Horizontal alignment of InputRange """
-    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50),
+    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, colour=(255, 255, 0), bg_col=(50, 50, 50),
                  margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
                  line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
-        super().__init__(text, pos, operation, text_size, text_col, bg_col, margin, default_val, max_val, min_val, hidden,
+        super().__init__(text, pos, operation, text_size, colour, bg_col, margin, default_val, max_val, min_val, hidden,
                          active, mouse_offset, line_length, line_width, thumb_radius, line_margin, update_live)
 
         size = pg.Vector2((text_size * self.max_value_chars) * 0.8, text_size + margin)
-        text_width = self.font.render(text, True, text_col).get_width()
+        text_width = self.font.render(text, True, colour).get_width()
         self.box_bounds = pg.Rect(text_width + pos.x + margin, pos.y, size.x, size.y)
         self.text_pos = pg.Vector2(pos.x, pos.y)
 
