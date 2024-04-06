@@ -13,23 +13,26 @@ class SineModal:
     def __init__(self, pos: pg.Vector2, num, colour=Colours.YELLOW):
         self.num = num
         self.pos = pos
-        self.size = pg.Vector2(220, 120)
+        self.size = pg.Vector2(GameValues.MODAL_WIDTH, GameValues.MODAL_HEIGHT)
         self.colour = colour
         self.screen = pg.Surface(self.size)
         self.paused = False
+
+        margin = 10
+        self.sine_circle = SineCircle(self, pg.Vector2(pos.x + self.size.x + margin, pos.y))
 
         common_kw = {'colour': colour, 'mouse_offset': pos, 'text_size': 15}
         self.name_inpt = Input('', pg.Vector2(6, -15), InputOperation(v),
                                default_val=Texts.GENERATOR + str(num), bg_col=Colours.BG_COL, max_value_chars=15, **common_kw)
         self.amp_inpt = InputRangeH(Texts.AMP, pg.Vector2(10, 30), InputOperation(v),
-                                    min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, **common_kw)
+                                    default_val=GameValues.MAX_AMP, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, **common_kw)
         self.freq_inpt = InputRangeH(Texts.FREQ, pg.Vector2(10, 60), InputOperation(v),
-                                     min_val=GameValues.MIN_FREQ, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, **common_kw)
+                                     default_val=1, min_val=GameValues.MIN_FREQ, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, **common_kw)
         self.phase_inpt = InputRangeH(Texts.PHASE, pg.Vector2(10, 90), InputOperation(v),
                                       default_val=GameValues.MIN_PHASE, min_val=GameValues.MIN_PHASE, max_val=GameValues.MAX_PHASE, line_length=75, thumb_radius=5, **common_kw)
         self.all_inpts = [self.name_inpt, self.amp_inpt, self.freq_inpt, self.phase_inpt]
 
-        self.pause_btn = ButtonToggle(Texts.ON, pg.Vector2(185, 85), BTNOperation(self.toggle_pause),
+        self.pause_btn = ButtonToggle(Texts.ON, pg.Vector2(188, 85), BTNOperation(self.toggle_pause),
                                       colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=15, toggled_text=Texts.OFF, outline=2, mouse_offset=pos)
         self.del_btn = Button(Texts.CLOSE, pg.Vector2(192, 0), BTNOperation(self.del_modal),
                               text_size=11, outline=2, colour=Colours.RED, override_size=pg.Vector2(18, 16), mouse_offset=pos)
@@ -63,12 +66,25 @@ class SineModal:
         self.freq_inpt.set_active(p)
         self.phase_inpt.set_active(p)
 
-    def get_sin(self):
-        a = int(self.amp_inpt.value)
-        f = int(self.freq_inpt.value)
-        p = int(self.phase_inpt.value)
+    def get_amp(self):
+        return int(self.amp_inpt.get_value())
+
+    def get_freq(self):
+        return int(self.freq_inpt.get_value())
+
+    def get_sin(self, amp=None, cos=False):
+        a = self.get_amp() if amp is None else amp
+        f = self.get_freq()
+        p = int(self.phase_inpt.get_value())
         t = time.time()
-        return a * math.sin((f * t) + p)
+        return a * math.sin((f * t) + p) if not cos else a * math.cos((f * t) + p)
+
+    def get_tan(self, amp=None):
+        a = self.get_amp() if amp is None else amp
+        f = self.get_freq()
+        p = int(self.phase_inpt.get_value())
+        t = time.time()
+        return a * math.tan((f * t) + p)
 
     def update(self):
         """ Every frame """
@@ -86,4 +102,55 @@ class SineModal:
         self.pause_btn.render(self.screen)
         self.del_btn.render(self.screen)
 
+        self.sine_circle.render(screen)
+
         screen.blit(self.screen, self.pos)
+
+
+class SineCircle:
+    def __init__(self, modal: SineModal, pos: pg.Vector2):
+        self.modal = modal
+        self.pos = pos
+        self.size = pg.Vector2(GameValues.MODAL_HEIGHT)
+        self.rect = pg.Rect(self.pos, self.size)
+
+    def get_radius(self):
+        perc = (self.modal.get_amp() - GameValues.MIN_AMP) / (GameValues.MAX_RADIUS - GameValues.MIN_AMP)
+        amp = GameValues.MIN_RADIUS + (perc * (GameValues.MAX_RADIUS - GameValues.MIN_RADIUS))
+        return amp
+
+    def get_sin(self, rad):
+        return self.modal.get_sin(rad - 1)
+
+    def get_cos(self, rad):
+        return self.modal.get_sin(amp=rad - 1, cos=True)
+
+    def get_tan(self):
+        return self.modal.get_tan()
+
+    def render(self, screen: pg.Surface):
+        poi = 3
+        cent = pg.Vector2(self.rect.center)
+        poi_pos = pg.Vector2(cent.x - math.floor(poi / 2), cent.y - math.floor(poi / 2))
+        pg.draw.rect(screen, self.modal.colour, self.rect, 2)
+
+        rad = self.get_radius()
+        sin = self.get_sin(rad)
+        cos = self.get_cos(rad)
+        sin_pos = pg.Vector2((cent.x, cent.y + sin))
+        cos_pos = pg.Vector2((cent.x + cos, cent.y))
+        hyp_pos = pg.Vector2(cent.x + cos, cent.y + sin)
+
+        # hyp lines
+        pg.draw.line(screen, Colours.LIGHT_GREY, hyp_pos, sin_pos)
+        pg.draw.line(screen, Colours.LIGHT_GREY, hyp_pos, cos_pos)
+        # sin
+        pg.draw.line(screen, Colours.GREEN, cent, sin_pos)
+        # cos
+        pg.draw.line(screen, Colours.AQUA, cent, cos_pos)
+        # hyp
+        pg.draw.line(screen, Colours.WHITE, cent, hyp_pos)
+        # amp
+        pg.draw.circle(screen, Colours.WHITE, cent, rad, 1)
+        # centre dot
+        pg.draw.rect(screen, Colours.WHITE, pg.Rect(poi_pos, (poi, poi)))

@@ -252,7 +252,7 @@ class Input:
         self.de_select()  # load defaults
 
     def key_input(self, key):
-        replace_chars = {'space': ' ', 'left shift': '', 'right shift': ''}
+        replace_chars = {'space': ' '}
         if self.selected and not self._hidden and self._active:
             if key == pg.K_RETURN:
                 self.de_select()
@@ -265,11 +265,14 @@ class Input:
             if len(self.value) < self.max_value_chars:
                 char = pg.key.name(key)
                 char = replace_chars[char] if char in replace_chars else char
-                if self.int_only and not char.isdigit():
+                if len(char) > 1 or (self.int_only and not char.isdigit()):
                     return
                 self.value += char
                 return
             self.de_select()
+
+    def get_value(self):
+        return self.value if self.value else 0
 
     def get_col(self, given_col=None):
         col = pg.Color(given_col if given_col else self.colour)
@@ -407,7 +410,7 @@ class InputRange(Input):
         if self.range_selected:
             mp_x = pg.mouse.get_pos()[0] - self.mouse_offset.x
             start, end = self.get_positions()[:2]
-            percent = ((mp_x - start.x) / (end.x - start.x))
+            percent = (mp_x - start.x) / (end.x - start.x)
             val = self.min + ((self.max - self.min) * percent)
             self.change_range_value(val)
 

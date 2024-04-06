@@ -28,7 +28,7 @@ class Game:
         self.sm_2_btn = Button(Texts.NEW_SINE, SMValues.SM_2_POS, BTNOperation(self.add_sine, None, 2), colour=SMValues.SM_2_COL, **kwargs)
         self.sm_3_btn = Button(Texts.NEW_SINE, SMValues.SM_3_POS, BTNOperation(self.add_sine, None, 3), colour=SMValues.SM_3_COL, **kwargs)
         self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4), colour=SMValues.SM_4_COL, **kwargs)
-        self.buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
+        self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
 
     def events(self):
         for event in pg.event.get():
@@ -51,7 +51,7 @@ class Game:
 
             # mouse
             if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
-                for btn in self.buttons:
+                for btn in self.sm_buttons:
                     btn.perform_operation()
                 for sm in self.sine_modals.values():
                     sm.mouse_down()
@@ -72,12 +72,13 @@ class Game:
         sm, pos, col = self.get_sm_dic()[sine_num]
         setattr(self, sm, SineModal(pos, sine_num, col))
         self.sine_modals[sine_num] = getattr(self, sm)
+        self.sm_buttons[sine_num - 1].set_hidden(True)
 
     def del_sine(self, sine_num):
         sm, pos, col = self.get_sm_dic()[sine_num]
         setattr(self, sm, None)
         self.sine_modals.pop(sine_num)
-        print('del', sine_num)
+        self.sm_buttons[sine_num - 1].set_hidden(False)
 
     def update(self):
         for sm in self.sine_modals.values():
@@ -88,7 +89,7 @@ class Game:
         self.canvas_screen.fill(Colours.BG_COL)
 
         # render here
-        for btn in self.buttons:
+        for btn in self.sm_buttons:
             btn.render(self.canvas_screen)
         for sm in self.sine_modals.values():
             sm.render(self.canvas_screen)

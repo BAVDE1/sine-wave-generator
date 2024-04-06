@@ -14,8 +14,8 @@ class Texts:
     AMP = 'amp'
     FREQ = 'freq'
     PHASE = 'phase'
-    ON = ' O '
-    OFF = '  |  '
+    ON = ' 1 '
+    OFF = ' 0 '
     CLOSE = ' X '
     NEW_SINE = 'New Sine'
 
@@ -27,12 +27,18 @@ class GameValues:
     SCREEN_HEIGHT = 800
     RES_MUL = 1
 
+    MODAL_WIDTH = 220
+    MODAL_HEIGHT = 120
+
+    MIN_RADIUS = 30
+    MAX_RADIUS = 50
+
     MIN_AMP = 1
     MIN_FREQ = 1
     MIN_PHASE = 0
     MAX_AMP = 50
     MAX_FREQ = 10
-    MAX_PHASE = 100
+    MAX_PHASE = 10
 
 
 class Colours:
