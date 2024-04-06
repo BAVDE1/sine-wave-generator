@@ -7,7 +7,7 @@ from constants import *
 class BTNOperation:
     def __init__(self, function=None, collection=None, *args, **kwargs):
         if not function and not collection:
-            raise ValueError("No function of collection given")
+            raise ValueError("No function or collection given")
         if function and not callable(function):
             raise ValueError("The given function param is not callable.")
         if collection and not isinstance(collection, Collection):
@@ -191,8 +191,10 @@ class ButtonToggle(Button):
     def __init__(self, text, pos: pg.Vector2, operation: BTNOperation,
                  text_size=30, colour=(255, 255, 0), text_margin=5,
                  override_size: pg.Vector2 | None = None, outline=0,
-                 hidden=False, active=True, toggled_text=""):
-        self.toggle_col = (255, 255, 255)
+                 hidden=False, active=True,
+                 toggle_col=(255, 255, 255), toggled_text="", toggled_col=None):
+        self.toggle_col = toggle_col
+        self.toggled_col = toggled_col if toggled_col is not None else colour
         self.toggled = False
         self.toggled_text = toggled_text if toggled_text else text
         super().__init__(text, pos, operation, text_size, colour, text_margin, override_size, outline, hidden, active)
@@ -205,6 +207,14 @@ class ButtonToggle(Button):
         if self.is_mouse_in_bounds() and not self._hidden and self._active:
             self.toggled = not self.toggled
 
+    def get_col(self, given_col=None):
+        class_col = self.toggled_col if self.toggled else self.colour
+        col = pg.Color(given_col if given_col else class_col)
+        if not self._active:
+            m = 0.3
+            col.update(math.ceil(col.r * m), math.ceil(col.g * m), math.ceil(col.b * m))
+        return col
+
     def render(self, screen: pg.Surface):
         super().render(screen)
         if self.toggled:
@@ -213,12 +223,13 @@ class ButtonToggle(Button):
 
 class Input:
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation,
-                 text_size=20, text_col=(255, 255, 0), max_value_chars=3, int_only=False, margin=5,
+                 text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50), max_value_chars=3, int_only=False, margin=5,
                  default_val="", max_val=0, min_val=0, hidden=False, active=True, validator=str):
         self.font = pg.font.SysFont(GameValues.FONT, text_size)
 
         self.text = text
         self.colour: pg.Color = pg.Color(text_col)
+        self.bg_col = bg_col
         self.margin = margin
         self.operation = operation
         self._hidden = hidden
@@ -240,6 +251,7 @@ class Input:
         self.de_select()  # load defaults
 
     def key_input(self, key):
+        replace_chars = {'space': ' ', 'left shift': '', 'right shift': ''}
         if self.selected and not self._hidden and self._active:
             if key == pg.K_RETURN:
                 self.de_select()
@@ -251,6 +263,7 @@ class Input:
             # add to value
             if len(self.value) < self.max_value_chars:
                 char = pg.key.name(key)
+                char = replace_chars[char] if char in replace_chars else char
                 if self.int_only and not char.isdigit():
                     return
                 self.value += char
@@ -294,7 +307,7 @@ class Input:
 
     def render(self, screen: pg.Surface):
         if not self._hidden:
-            pg.draw.rect(screen, self.get_col((50, 50, 50)), self.box_bounds)
+            pg.draw.rect(screen, self.get_col(self.bg_col), self.box_bounds)
             self.mouse_input_hover(screen)
 
             if self.selected:
@@ -316,10 +329,10 @@ class Input:
 
 
 class InputRange(Input):
-    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), margin=5,
-                 default_val=5, max_val=10, min_val=0, hidden=False, active=True,
+    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50),
+                 margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True,
                  line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
-        super().__init__(text, pos, operation, text_size, text_col, len(str(max_val)), True, margin, default_val,
+        super().__init__(text, pos, operation, text_size, text_col, bg_col, len(str(max_val)), True, margin, default_val,
                          max_val, min_val, hidden, active)
         self.min = min(max_val - 1, min_val)
         self.line_length = line_length
@@ -375,6 +388,7 @@ class InputRange(Input):
                 pg.draw.circle(screen, Colours.BLACK, thumb_pos, width=width, radius=self.thumb_radius - 2)
     
     def update(self):
+        """ Called every frame """
         if self.range_selected:
             mp_x = pg.mouse.get_pos()[0]
             start, end = self.get_positions()[:2]
@@ -386,3 +400,26 @@ class InputRange(Input):
         mp_x, mp_y = pg.mouse.get_pos()
         return (thumb_pos.x - self.thumb_radius < mp_x < thumb_pos.x + self.thumb_radius
                 and thumb_pos.y - self.thumb_radius < mp_y < thumb_pos.y + self.thumb_radius)
+
+
+class InputRangeH(InputRange):
+    """ Horizontal alignment of InputRange """
+    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50),
+                 margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True,
+                 line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
+        super().__init__(text, pos, operation, text_size, text_col, bg_col, margin, default_val, max_val, min_val, hidden,
+                         active, line_length, line_width, thumb_radius, line_margin, update_live)
+
+        size = pg.Vector2((text_size * self.max_value_chars) * 0.8, text_size + margin)
+        text_width = self.font.render(text, True, text_col).get_width()
+        self.box_bounds = pg.Rect(text_width + pos.x + margin, pos.y, size.x, size.y)
+        self.text_pos = pg.Vector2(pos.x, pos.y)
+
+    def get_positions(self):
+        """ Returns: line start, line end, thumb pos """
+        ll = self.line_length / 2
+        x = self.box_bounds.x + self.box_bounds.width + ll + self.margin + self.thumb_radius
+        y = self.box_bounds.y + (self.box_bounds.height / 2)
+        val = max(self.min, min(self.max, int(self.value if self.value else 0)))  # value if not None
+        thumb_x = x + (((val - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
+        return pg.Vector2(x - ll, y), pg.Vector2(x + ll, y),  pg.Vector2(thumb_x, y)

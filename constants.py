@@ -11,7 +11,7 @@ class Texts:
 class GameValues:
     FONT = "Times New Roman"
 
-    SCREEN_WIDTH = 800
+    SCREEN_WIDTH = 1200
     SCREEN_HEIGHT = 800
     RES_MUL = 1
 
@@ -24,3 +24,4 @@ class Colours:
     LIGHT_GREY = (150, 150, 150)
     GREY = (100, 100, 100)
     BLACK = (0, 0, 0)
+    YELLOW = (255, 255, 0)
