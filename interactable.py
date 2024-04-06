@@ -97,7 +97,7 @@ class Button:
     def __init__(self, text, pos: pg.Vector2, operation: BTNOperation,
                  text_size=30, colour=(255, 255, 0), text_margin=5,
                  override_size: pg.Vector2 | None = None, outline=0,
-                 hidden=False, active=True):
+                 hidden=False, active=True, mouse_offset=pg.Vector2(0, 0)):
         self.font = pg.font.SysFont(GameValues.FONT, text_size)
 
         self.margin = text_margin
@@ -113,7 +113,7 @@ class Button:
         self.override_size = None
         if override_size:
             self.override_size = pg.Vector2(override_size)
-        self.mouse_offset = pg.Vector2(0, 0)
+        self.mouse_offset = mouse_offset
 
     def get_text_pos(self):
         return pg.Vector2(self.get_bounds().topleft) + pg.Vector2(self.margin * .5)
@@ -191,13 +191,13 @@ class ButtonToggle(Button):
     def __init__(self, text, pos: pg.Vector2, operation: BTNOperation,
                  text_size=30, colour=(255, 255, 0), text_margin=5,
                  override_size: pg.Vector2 | None = None, outline=0,
-                 hidden=False, active=True,
+                 hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
                  toggle_col=(255, 255, 255), toggled_text="", toggled_col=None):
         self.toggle_col = toggle_col
         self.toggled_col = toggled_col if toggled_col is not None else colour
         self.toggled = False
         self.toggled_text = toggled_text if toggled_text else text
-        super().__init__(text, pos, operation, text_size, colour, text_margin, override_size, outline, hidden, active)
+        super().__init__(text, pos, operation, text_size, colour, text_margin, override_size, outline, hidden, active, mouse_offset)
 
     def get_text(self):
         return self.toggled_text if self.toggled else self.text
@@ -224,7 +224,7 @@ class ButtonToggle(Button):
 class Input:
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation,
                  text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50), max_value_chars=3, int_only=False, margin=5,
-                 default_val="", max_val=0, min_val=0, hidden=False, active=True, validator=str):
+                 default_val="", max_val=0, min_val=0, hidden=False, active=True, validator=str, mouse_offset=pg.Vector2(0, 0)):
         self.font = pg.font.SysFont(GameValues.FONT, text_size)
 
         self.text = text
@@ -243,6 +243,7 @@ class Input:
         self.selected = True
         self.value = default_val
         self.validator = validator
+        self.mouse_offset = mouse_offset
 
         self.box_bounds = pg.Rect(pos.x, text_size + pos.y + margin, (text_size * max_value_chars) * 0.8, text_size + margin)
         display_text = self.font.render(text, True, text_col)
@@ -322,18 +323,23 @@ class Input:
         if self.is_mouse_in_input_bounds():
             pg.draw.rect(screen, self.get_col((100, 100, 100)), self.box_bounds)
 
+    def get_mouse_bounds(self):
+        return pg.Rect(self.box_bounds.topleft + self.mouse_offset, self.box_bounds.size)
+
     def is_mouse_in_input_bounds(self):
         mp = pg.Vector2(pg.mouse.get_pos()) / GameValues.RES_MUL
-        return (self.box_bounds.x < mp.x < self.box_bounds.x + self.box_bounds.width
-                and self.box_bounds.y < mp.y < self.box_bounds.y + self.box_bounds.height)
+        bounds = self.get_mouse_bounds()
+        return (bounds.x < mp.x < bounds.x + bounds.width
+                and bounds.y < mp.y < bounds.y + bounds.height)
 
 
 class InputRange(Input):
-    def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50),
-                 margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True,
+    def __init__(self, text, pos: pg.Vector2, operation: InputOperation,
+                 text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50), margin=5,
+                 default_val="", max_val=0, min_val=0, hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
                  line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
         super().__init__(text, pos, operation, text_size, text_col, bg_col, len(str(max_val)), True, margin, default_val,
-                         max_val, min_val, hidden, active)
+                         max_val, min_val, hidden, active, str, mouse_offset)
         self.min = min(max_val - 1, min_val)
         self.line_length = line_length
         self.line_width = line_width
@@ -357,8 +363,9 @@ class InputRange(Input):
 
     def mouse_down(self):
         super().mouse_down()
-        if self.is_mouse_in_thumb_bounds(self.get_positions()[2]) and not self.range_selected:
-            self.range_selected = True
+        if not self._hidden and self._active:
+            if self.is_mouse_in_thumb_bounds(self.get_positions()[2]) and not self.range_selected:
+                self.range_selected = True
 
     def mouse_up(self):
         if self.range_selected:
@@ -374,23 +381,31 @@ class InputRange(Input):
         thumb_x = mid + (((val - ((self.max + self.min) / 2)) / (self.max - self.min)) * self.line_length)
         return pg.Vector2(mid - ll, y), pg.Vector2(mid + ll, y),  pg.Vector2(thumb_x, y)
 
+    def get_range_col(self):
+        col = pg.Color(self.colour)
+        if not self._active:
+            m = 0.3
+            col.update(math.ceil(col.r * m), math.ceil(col.g * m), math.ceil(col.b * m))
+        return col
+
     def render(self, screen: pg.Surface):
         super().render(screen)
         if not self._hidden:
             start, end, thumb_pos = self.get_positions()
 
-            pg.draw.line(screen, self.colour, start, end, width=self.line_width)  # line
-            pg.draw.circle(screen, self.colour, thumb_pos, radius=self.thumb_radius)  # thumb
+            pg.draw.line(screen, self.get_range_col(), start, end, width=self.line_width)  # line
+            pg.draw.circle(screen, self.get_range_col(), thumb_pos, radius=self.thumb_radius)  # thumb
 
             # update selected / hover
-            if self.is_mouse_in_thumb_bounds(thumb_pos) or self.range_selected:
-                width = self.thumb_radius if self.range_selected else math.ceil(self.thumb_radius / 4)
-                pg.draw.circle(screen, Colours.BLACK, thumb_pos, width=width, radius=self.thumb_radius - 2)
+            if not self._hidden and self._active:
+                if self.is_mouse_in_thumb_bounds(thumb_pos) or self.range_selected:
+                    width = self.thumb_radius if self.range_selected else math.ceil(self.thumb_radius / 4)
+                    pg.draw.circle(screen, Colours.BLACK, thumb_pos, width=width, radius=self.thumb_radius - 2)
     
     def update(self):
         """ Called every frame """
         if self.range_selected:
-            mp_x = pg.mouse.get_pos()[0]
+            mp_x = pg.mouse.get_pos()[0] - self.mouse_offset.x
             start, end = self.get_positions()[:2]
             percent = ((mp_x - start.x) / (end.x - start.x))
             val = self.min + ((self.max - self.min) * percent)
@@ -398,17 +413,18 @@ class InputRange(Input):
 
     def is_mouse_in_thumb_bounds(self, thumb_pos):
         mp_x, mp_y = pg.mouse.get_pos()
-        return (thumb_pos.x - self.thumb_radius < mp_x < thumb_pos.x + self.thumb_radius
-                and thumb_pos.y - self.thumb_radius < mp_y < thumb_pos.y + self.thumb_radius)
+        t_pos = thumb_pos + self.mouse_offset
+        return (t_pos.x - self.thumb_radius < mp_x < t_pos.x + self.thumb_radius
+                and t_pos.y - self.thumb_radius < mp_y < t_pos.y + self.thumb_radius)
 
 
 class InputRangeH(InputRange):
     """ Horizontal alignment of InputRange """
     def __init__(self, text, pos: pg.Vector2, operation: InputOperation, text_size=20, text_col=(255, 255, 0), bg_col=(50, 50, 50),
-                 margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True,
+                 margin=5, default_val=5, max_val=10, min_val=0, hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
                  line_length=100, line_width=3, thumb_radius=6, line_margin=10, update_live=False):
         super().__init__(text, pos, operation, text_size, text_col, bg_col, margin, default_val, max_val, min_val, hidden,
-                         active, line_length, line_width, thumb_radius, line_margin, update_live)
+                         active, mouse_offset, line_length, line_width, thumb_radius, line_margin, update_live)
 
         size = pg.Vector2((text_size * self.max_value_chars) * 0.8, text_size + margin)
         text_width = self.font.render(text, True, text_col).get_width()

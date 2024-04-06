@@ -15,25 +15,27 @@ class SineModal:
         self.pos = pos
         self.size = pg.Vector2(220, 120)
         self.colour = colour
+        self.screen = pg.Surface(self.size)
+        self.paused = False
 
         txt_size = 15
-        self.name_inpt = Input('', pg.Vector2(pos.x + 6, pos.y - txt_size), InputOperation(v),
-                               default_val='generator ' + str(num), bg_col=Colours.BG_COL, text_size=txt_size, max_value_chars=15)
-        self.amp_inpt = InputRangeH('amp', pg.Vector2(pos.x + 10, pos.y + 30), InputOperation(v),
-                                    text_size=txt_size, min_val=1, max_val=50, line_length=80, thumb_radius=5)
-        self.freq_inpt = InputRangeH('freq', pg.Vector2(pos.x + 10, pos.y + 60), InputOperation(v),
-                                     text_size=txt_size, min_val=1, max_val=10, line_length=80, thumb_radius=5)
-        self.phase_inpt = InputRangeH('phase', pg.Vector2(pos.x + 10, pos.y + 90), InputOperation(v),
-                                      text_size=txt_size, default_val=0, min_val=0, max_val=100, line_length=80, thumb_radius=5)
+        self.name_inpt = Input('', pg.Vector2(6, -txt_size), InputOperation(v),
+                               default_val=Texts.GENERATOR + str(num), bg_col=Colours.BG_COL, text_size=txt_size, max_value_chars=15, mouse_offset=pos)
+        self.amp_inpt = InputRangeH(Texts.AMP, pg.Vector2(10, 30), InputOperation(v),
+                                    text_size=txt_size, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, mouse_offset=pos)
+        self.freq_inpt = InputRangeH(Texts.FREQ, pg.Vector2(10, 60), InputOperation(v),
+                                     text_size=txt_size, min_val=GameValues.MIN_FREQ, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, mouse_offset=pos)
+        self.phase_inpt = InputRangeH(Texts.PHASE, pg.Vector2(10, 90), InputOperation(v),
+                                      text_size=txt_size, default_val=GameValues.MIN_PHASE, min_val=GameValues.MIN_PHASE, max_val=GameValues.MAX_PHASE, line_length=75, thumb_radius=5, mouse_offset=pos)
         self.all_inpts = [self.name_inpt, self.amp_inpt, self.freq_inpt, self.phase_inpt]
 
-        self.pause_btn = ButtonToggle(' O ', pg.Vector2(pos.x + 185, pos.y + 85), BTNOperation(v),
-                                      colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=txt_size, toggled_text='  |  ', outline=2)
-        self.del_btn = Button(' X ', pg.Vector2(pos.x + 192, pos.y), BTNOperation(v),
-                              text_size=11, outline=2, colour=Colours.RED, override_size=pg.Vector2(18, 16))
+        self.pause_btn = ButtonToggle(Texts.ON, pg.Vector2(185, 85), BTNOperation(self.toggle_pause),
+                                      colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=txt_size, toggled_text=Texts.OFF, outline=2, mouse_offset=pos)
+        self.del_btn = Button(Texts.CLOSE, pg.Vector2(192, 0), BTNOperation(v),
+                              text_size=11, outline=2, colour=Colours.RED, override_size=pg.Vector2(18, 16), mouse_offset=pos)
 
     def get_rect(self):
-        return pg.Rect(self.pos.x, self.pos.y, self.size.x, self.size.y)
+        return pg.Rect(0, 0, self.size.x, self.size.y)
 
     def key_input(self, key):
         for inpt in self.all_inpts:
@@ -50,6 +52,13 @@ class SineModal:
         self.pause_btn.perform_operation()
         self.del_btn.perform_operation()
 
+    def toggle_pause(self):
+        p = self.paused
+        self.paused = not p
+        self.amp_inpt.set_active(p)
+        self.freq_inpt.set_active(p)
+        self.phase_inpt.set_active(p)
+
     def get_sin(self):
         a = int(self.amp_inpt.value)
         f = int(self.freq_inpt.value)
@@ -62,11 +71,12 @@ class SineModal:
         self.amp_inpt.update()
         self.freq_inpt.update()
         self.phase_inpt.update()
-        # print(self.get_sin())
 
     def render(self, screen: pg.Surface):
-        pg.draw.rect(screen, self.colour, self.get_rect(), 2)
+        self.screen.fill(Colours.BG_COL)
+        pg.draw.rect(self.screen, self.colour, self.get_rect(), 2)
         for inpt in self.all_inpts:
-            inpt.render(screen)
-        self.pause_btn.render(screen)
-        self.del_btn.render(screen)
+            inpt.render(self.screen)
+        self.pause_btn.render(self.screen)
+        self.del_btn.render(self.screen)
+        screen.blit(self.screen, self.pos)

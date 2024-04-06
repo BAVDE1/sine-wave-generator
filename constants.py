@@ -5,7 +5,13 @@ def get_middle(pos, width_1, width_2) -> int:
 
 
 class Texts:
-    pass
+    GENERATOR = 'generator '
+    AMP = 'amp'
+    FREQ = 'freq'
+    PHASE = 'phase'
+    ON = ' O '
+    OFF = '  |  '
+    CLOSE = ' X '
 
 
 class GameValues:
@@ -14,6 +20,13 @@ class GameValues:
     SCREEN_WIDTH = 1200
     SCREEN_HEIGHT = 800
     RES_MUL = 1
+
+    MIN_AMP = 1
+    MIN_FREQ = 1
+    MIN_PHASE = 0
+    MAX_AMP = 50
+    MAX_FREQ = 10
+    MAX_PHASE = 100
 
 
 class Colours:
