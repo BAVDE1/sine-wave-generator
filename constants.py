@@ -28,16 +28,17 @@ class GameValues:
     RES_MUL = 1
 
     MODAL_WIDTH = 220
+    MODAL_WIDTH_SMALL = 160
     MODAL_HEIGHT = 120
 
-    MIN_RADIUS = 30
+    MIN_RADIUS = 20
     MAX_RADIUS = 50
 
     MIN_AMP = 1
     MIN_FREQ = 1
     MIN_PHASE = 0
     MAX_AMP = 50
-    MAX_FREQ = 10
+    MAX_FREQ = 12
     MAX_PHASE = 10
 
 
@@ -56,10 +57,10 @@ class Colours:
 
 
 class SMValues:
-    SM_1_POS = pg.Vector2(20, 100)
-    SM_2_POS = pg.Vector2(20, 230)
-    SM_3_POS = pg.Vector2(20, 360)
-    SM_4_POS = pg.Vector2(20, 490)
+    SM_1_POS = pg.Vector2(10, 100)
+    SM_2_POS = pg.Vector2(10, 230)
+    SM_3_POS = pg.Vector2(10, 360)
+    SM_4_POS = pg.Vector2(10, 490)
 
     SM_1_COL = Colours.GREEN
     SM_2_COL = Colours.PINK

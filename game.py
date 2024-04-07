@@ -1,3 +1,5 @@
+import time
+
 from interactable import BTNOperation, Button, ButtonToggle, Input, InputRange, InputOperation, Collection
 from constants import *
 from modal import SineModal
@@ -10,9 +12,11 @@ def test(val=0):
 class Game:
     def __init__(self):
         self.running = True
-        self.fps = 120
+        self.fps = 60
         self.clock = pg.time.Clock()
         self.keys = pg.key.get_pressed()
+        self.last_frame = time.time()
+        self.delta_time = time.time()
 
         self.canvas_screen = pg.Surface(pg.Vector2(GameValues.SCREEN_WIDTH, GameValues.SCREEN_HEIGHT))
         self.final_screen = pg.display.get_surface()
@@ -70,7 +74,7 @@ class Game:
 
     def add_sine(self, sine_num):
         sm, pos, col = self.get_sm_dic()[sine_num]
-        setattr(self, sm, SineModal(pos, sine_num, col))
+        setattr(self, sm, SineModal(self, pos, sine_num, col))
         self.sine_modals[sine_num] = getattr(self, sm)
         self.sm_buttons[sine_num - 1].set_hidden(True)
 
@@ -102,10 +106,11 @@ class Game:
 
     def main_loop(self):
         while self.running:
+            self.delta_time = time.time() - self.last_frame
+            self.last_frame = time.time()
             self.events()
             self.update()
             self.render()
 
             self.clock.tick(self.fps)
-
             pg.display.set_caption("{} - fps: {:.2f}".format("sine gen", self.clock.get_fps()))

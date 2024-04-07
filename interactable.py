@@ -309,6 +309,9 @@ class Input:
     def set_active(self, val: bool):
         self._active = val
 
+    def set_value(self, val):
+        self.validate_input(val)
+
     def render(self, screen: pg.Surface):
         if not self._hidden:
             pg.draw.rect(screen, self.get_col(self.bg_col), self.box_bounds)
