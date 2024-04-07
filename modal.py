@@ -139,6 +139,13 @@ class SineCircle:
         cos_pos = pg.Vector2((cent.x + cos, cent.y))
         hyp_pos = pg.Vector2(cent.x + cos, cent.y + sin)
 
+        # guidelines
+        pg.draw.circle(screen, Colours.DARKER_GREY, cent, rad)  # inner rad bg
+        pg.draw.line(screen, Colours.DARK_GREY, (cent.x + GameValues.MAX_RADIUS, cent.y), (cent.x - GameValues.MAX_RADIUS, cent.y))
+        pg.draw.line(screen, Colours.DARK_GREY, (cent.x, cent.y + GameValues.MAX_RADIUS), (cent.x, cent.y - GameValues.MAX_RADIUS))
+        pg.draw.circle(screen, Colours.DARK_GREY, cent, GameValues.MIN_RADIUS, 1)
+        pg.draw.circle(screen, Colours.DARK_GREY, cent, GameValues.MAX_RADIUS, 1)
+
         # hyp lines
         pg.draw.line(screen, Colours.LIGHT_GREY, hyp_pos, sin_pos)
         pg.draw.line(screen, Colours.LIGHT_GREY, hyp_pos, cos_pos)
@@ -154,7 +161,7 @@ class SineCircle:
         pg.draw.rect(screen, Colours.WHITE, pg.Rect(poi_pos, (poi, poi)))
 
         # text
-        x = self.pos.x + 118
+        x = self.pos.x + 122
         screen.blit(self.font.render(str('{:.1f}'.format(sin)), True, Colours.GREEN), pg.Vector2(x, self.pos.y + 10))
         screen.blit(self.font.render(str('{:.1f}'.format(cos)), True, Colours.AQUA), pg.Vector2(x, self.pos.y + 45))
         theta = math.atan(sin_pos.magnitude() / cos_pos.magnitude())

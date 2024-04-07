@@ -3,6 +3,7 @@ import time
 from interactable import BTNOperation, Button, ButtonToggle, Input, InputRange, InputOperation, Collection
 from constants import *
 from modal import SineModal
+from display import SineDisplay
 
 
 def test(val=0):
@@ -21,6 +22,8 @@ class Game:
         self.canvas_screen = pg.Surface(pg.Vector2(GameValues.SCREEN_WIDTH, GameValues.SCREEN_HEIGHT))
         self.final_screen = pg.display.get_surface()
 
+        self.sine_display = SineDisplay(self, pg.Vector2(430, 100))
+
         self.sm_1: SineModal | None = None
         self.sm_2: SineModal | None = None
         self.sm_3: SineModal | None = None
@@ -34,6 +37,10 @@ class Game:
         self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4), colour=SMValues.SM_4_COL, **kwargs)
         self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
 
+        self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity),
+                                    default_val=15, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, update_live=True, text_size=18)
+        self.inputs = [self.gran_inpt]
+
     def events(self):
         for event in pg.event.get():
             # custom
@@ -43,6 +50,8 @@ class Game:
             # key input
             if event.type == pg.KEYDOWN:
                 self.keys = pg.key.get_pressed()
+                for inpt in self.inputs:
+                    inpt.key_input(event.key)
                 for sm in self.sine_modals.values():
                     sm.key_input(event.key)
 
@@ -55,12 +64,16 @@ class Game:
 
             # mouse
             if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
+                for inpt in self.inputs:
+                    inpt.mouse_down()
                 for btn in self.sm_buttons:
                     btn.perform_operation()
                 for sm in self.sine_modals.values():
                     sm.mouse_down()
 
             if event.type == pg.MOUSEBUTTONUP and not pg.mouse.get_pressed()[0]:
+                for inpt in self.inputs:
+                    inpt.mouse_up()
                 for sm in self.sine_modals.values():
                     sm.mouse_up()
 
@@ -85,18 +98,26 @@ class Game:
         self.sm_buttons[sine_num - 1].set_hidden(False)
 
     def update(self):
+        for inpt in self.inputs:
+            inpt.update()
         for sm in self.sine_modals.values():
             sm.update()
-    
+
+    def set_granularity(self, val):
+        self.sine_display.granularity = val
+
     def render(self):
         self.final_screen.fill(Colours.BG_COL)
         self.canvas_screen.fill(Colours.BG_COL)
 
         # render here
+        for inpt in self.inputs:
+            inpt.render(self.canvas_screen)
         for btn in self.sm_buttons:
             btn.render(self.canvas_screen)
         for sm in self.sine_modals.values():
             sm.render(self.canvas_screen)
+        self.sine_display.render(self.canvas_screen)
 
         # final
         scaled = pg.transform.scale(self.canvas_screen, pg.Vector2(GameValues.SCREEN_WIDTH * GameValues.RES_MUL, GameValues.SCREEN_HEIGHT * GameValues.RES_MUL))

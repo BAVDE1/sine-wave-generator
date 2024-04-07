@@ -17,7 +17,8 @@ class Texts:
     ON = ' 1 '
     OFF = ' 0 '
     CLOSE = ' X '
-    NEW_SINE = 'New Sine'
+    NEW_SINE = '+ New Sine'
+    GRANULARITY = 'Granularity'
 
 
 class GameValues:
@@ -31,8 +32,14 @@ class GameValues:
     MODAL_WIDTH_SMALL = 160
     MODAL_HEIGHT = 120
 
+    DISPLAY_WIDTH = 740
+    DISPLAY_HEIGHT = 600
+
     MIN_RADIUS = 20
     MAX_RADIUS = 50
+
+    MIN_GRAN = 10
+    MAX_GRAN = 40
 
     MIN_AMP = 1
     MIN_FREQ = 1
@@ -44,9 +51,12 @@ class GameValues:
 
 class Colours:
     BG_COL = (0, 10, 10)
+    BG_COL_LIGHT = (0, 15, 15)
     WHITE = (255, 255, 255)
     LIGHT_GREY = (150, 150, 150)
-    GREY = (100, 100, 100)
+    GREY = (60, 100, 100)
+    DARK_GREY = (30, 50, 50)
+    DARKER_GREY = (10, 25, 25)
     BLACK = (0, 0, 0)
 
     YELLOW = (255, 255, 0)
@@ -58,9 +68,9 @@ class Colours:
 
 class SMValues:
     SM_1_POS = pg.Vector2(10, 100)
-    SM_2_POS = pg.Vector2(10, 230)
-    SM_3_POS = pg.Vector2(10, 360)
-    SM_4_POS = pg.Vector2(10, 490)
+    SM_2_POS = pg.Vector2(10, 260)
+    SM_3_POS = pg.Vector2(10, 420)
+    SM_4_POS = pg.Vector2(10, 580)
 
     SM_1_COL = Colours.GREEN
     SM_2_COL = Colours.PINK
