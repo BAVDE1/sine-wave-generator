@@ -96,6 +96,7 @@ class Game:
         setattr(self, sm, None)
         self.sine_modals.pop(sine_num)
         self.sm_buttons[sine_num - 1].set_hidden(False)
+        self.sine_display.clear_screen(sine_num)
 
     def update(self):
         for inpt in self.inputs:
