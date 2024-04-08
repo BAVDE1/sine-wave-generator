@@ -28,7 +28,7 @@ class SineModal:
         self.name_inpt = Input('', pg.Vector2(6, -15), InputOperation(v),
                                default_val=Texts.GENERATOR + str(num), bg_col=Colours.BG_COL, max_value_chars=15, **common_kw)
         self.amp_inpt = InputRangeH(Texts.AMP, pg.Vector2(10, 30), InputOperation(v),
-                                    default_val=GameValues.MAX_AMP, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, **common_kw)
+                                    default_val=GameValues.MAX_AMP / 2, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, **common_kw)
         self.freq_inpt = InputRangeH(Texts.FREQ, pg.Vector2(10, 60), InputOperation(v),
                                      default_val=1, min_val=self.old_freq, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, **common_kw)
         self.phase_inpt = InputRangeH(Texts.PHASE, pg.Vector2(10, 90), InputOperation(v),
@@ -116,7 +116,7 @@ class SineCircle:
         self.font = pg.font.SysFont(GameValues.FONT, 13)
 
     def get_radius(self):
-        perc = (self.modal.get_amp() - GameValues.MIN_AMP) / (GameValues.MAX_RADIUS - GameValues.MIN_AMP)
+        perc = (self.modal.get_amp() - GameValues.MIN_AMP) / (GameValues.MAX_AMP - GameValues.MIN_AMP)
         amp = GameValues.MIN_RADIUS + (perc * (GameValues.MAX_RADIUS - GameValues.MIN_RADIUS))
         return amp
 

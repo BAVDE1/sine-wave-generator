@@ -38,13 +38,13 @@ class GameValues:
     MIN_RADIUS = 20
     MAX_RADIUS = 50
 
-    MIN_GRAN = 10
-    MAX_GRAN = 40
+    MIN_GRAN = 1
+    MAX_GRAN = 20
 
-    MIN_AMP = 1
+    MIN_AMP = 2
     MIN_FREQ = 1
     MIN_PHASE = 0
-    MAX_AMP = 50
+    MAX_AMP = 260
     MAX_FREQ = 12
     MAX_PHASE = 10
 
