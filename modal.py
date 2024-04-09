@@ -69,6 +69,9 @@ class SineModal:
         self.freq_inpt.set_active(p)
         self.phase_inpt.set_active(p)
 
+        event = pg.event.Event(CustomEvents.PAUSE_SINE, num=self.num, paused=self.paused)
+        pg.event.post(event)
+
     def get_amp(self):
         return int(self.amp_inpt.get_value())
 

@@ -7,6 +7,7 @@ def get_middle(pos, width_1, width_2) -> int:
 
 class CustomEvents:
     DEL_MODAL = pg.event.custom_type()
+    PAUSE_SINE = pg.event.custom_type()
 
 
 class Texts:
@@ -39,7 +40,7 @@ class GameValues:
     MAX_RADIUS = 50
 
     MIN_GRAN = 1
-    MAX_GRAN = 20
+    MAX_GRAN = 30
 
     MIN_AMP = 2
     MIN_FREQ = 1

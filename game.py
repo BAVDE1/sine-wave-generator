@@ -38,7 +38,7 @@ class Game:
         self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
 
         self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity),
-                                    default_val=15, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, update_live=True, text_size=18)
+                                    default_val=5, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, update_live=True, text_size=18)
         self.inputs = [self.gran_inpt]
 
     def events(self):
@@ -46,6 +46,9 @@ class Game:
             # custom
             if event.type == CustomEvents.DEL_MODAL:
                 self.del_sine(event.num)
+
+            if event.type == CustomEvents.PAUSE_SINE:
+                self.sine_display.toggle_pause(event.num, event.paused)
 
             # key input
             if event.type == pg.KEYDOWN:
