@@ -37,9 +37,11 @@ class Game:
         self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4), colour=SMValues.SM_4_COL, **kwargs)
         self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
 
-        self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity),
-                                    default_val=5, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, update_live=True, text_size=18)
-        self.inputs = [self.gran_inpt]
+        self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity), default_val=GameValues.MIN_GRAN, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, update_live=True, text_size=18)
+        self.point_inpt = InputRange(Texts.POINT_SIZE, pg.Vector2(900, 15), InputOperation(self.set_point_size), default_val=2, min_val=GameValues.MIN_POINT_SIZ, max_val=GameValues.MAX_POINT_SIZ, update_live=True, text_size=18)
+        self.line_inpt = InputRange(Texts.LINE_SIZE, pg.Vector2(700, 15), InputOperation(self.set_line_size), default_val=3, min_val=GameValues.MIN_LINE_SIZ, max_val=GameValues.MAX_LINE_SIZ, update_live=True, text_size=18)
+        self.ppf_inpt = InputRange(Texts.PPF, pg.Vector2(500, 15), InputOperation(self.set_ppf), default_val=1, min_val=GameValues.MIN_PPF, max_val=GameValues.MAX_PPF, update_live=True, text_size=18)
+        self.inputs = [self.gran_inpt, self.point_inpt, self.line_inpt, self.ppf_inpt]
 
     def events(self):
         for event in pg.event.get():
@@ -109,6 +111,15 @@ class Game:
 
     def set_granularity(self, val):
         self.sine_display.granularity = val
+
+    def set_point_size(self, val):
+        self.sine_display.point_size = val
+
+    def set_line_size(self, val):
+        self.sine_display.line_thickness = val
+
+    def set_ppf(self, val):
+        self.sine_display.pixels_per_frame = val
 
     def render(self):
         self.final_screen.fill(Colours.BG_COL)

@@ -81,7 +81,7 @@ class SineModal:
     def get_sin(self, amp=None, cos=False):
         a = self.get_amp() if amp is None else amp
         f = self.get_freq()
-        p = int(self.phase_inpt.get_value())
+        p = int(self.phase_inpt.get_value()) / 2
         t = time.time() - self.paused_time
         return a * math.sin((f * t) + p) if not cos else a * math.cos((f * t) + p)
 

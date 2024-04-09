@@ -20,6 +20,9 @@ class Texts:
     CLOSE = ' X '
     NEW_SINE = '+ New Sine'
     GRANULARITY = 'Granularity'
+    POINT_SIZE = 'Point Size'
+    LINE_SIZE = 'Line Size'
+    PPF = 'Pixels / Frame'
 
 
 class GameValues:
@@ -40,14 +43,20 @@ class GameValues:
     MAX_RADIUS = 50
 
     MIN_GRAN = 1
-    MAX_GRAN = 30
+    MAX_GRAN = 40
+    MIN_POINT_SIZ = 0
+    MAX_POINT_SIZ = 10
+    MIN_LINE_SIZ = 0
+    MAX_LINE_SIZ = 10
+    MIN_PPF = 1
+    MAX_PPF = 40
 
     MIN_AMP = 2
     MIN_FREQ = 1
     MIN_PHASE = 0
     MAX_AMP = 260
     MAX_FREQ = 12
-    MAX_PHASE = 10
+    MAX_PHASE = 15
 
 
 class Colours:
