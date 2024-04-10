@@ -203,9 +203,13 @@ class ButtonToggle(Button):
         return self.toggled_text if self.toggled else self.text
 
     def perform_operation(self):
-        super().perform_operation()
         if self.is_mouse_in_bounds() and not self._hidden and self._active:
             self.toggled = not self.toggled
+        super().perform_operation()
+
+    def set_toggle(self, val=None):
+        val = val if val is not None else not self.toggled
+        self.toggled = val
 
     def get_col(self, given_col=None):
         class_col = self.toggled_col if self.toggled else self.colour

@@ -62,6 +62,8 @@ class GameValues:
     MAX_FREQ = 12
     MAX_PHASE = 15
 
+    PAGE_NUMBERS = 10
+
 
 class Colours:
     BG_COL = (0, 10, 10)

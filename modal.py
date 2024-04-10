@@ -10,8 +10,75 @@ def v(v=0):
 
 
 class ModalPage:
-    def __init__(self):
+    def __init__(self, page_num):
         self.pos = pg.Vector2()
+        self.page_num = page_num
+
+        self.sm_1: SineModal | None = None
+        self.sm_2: SineModal | None = None
+        self.sm_3: SineModal | None = None
+        self.sm_4: SineModal | None = None
+        self.sine_modals = {}
+
+        kwargs = {'text_size': 20, 'outline': 2, 'margin': 15}
+        self.sm_1_btn = Button(Texts.NEW_SINE, SMValues.SM_1_POS, BTNOperation(self.add_sine, None, 1),
+                               colour=SMValues.SM_1_COL, **kwargs)
+        self.sm_2_btn = Button(Texts.NEW_SINE, SMValues.SM_2_POS, BTNOperation(self.add_sine, None, 2),
+                               colour=SMValues.SM_2_COL, **kwargs)
+        self.sm_3_btn = Button(Texts.NEW_SINE, SMValues.SM_3_POS, BTNOperation(self.add_sine, None, 3),
+                               colour=SMValues.SM_3_COL, **kwargs)
+        self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4),
+                               colour=SMValues.SM_4_COL, **kwargs)
+        self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
+
+    def set_all_phase_div(self, val):
+        for sm in self.sine_modals.values():
+            sm.set_phase_div(val)
+
+    def get_sm_dic(self):
+        return {
+            1: [self.sm_1.__str__(), SMValues.SM_1_POS, SMValues.SM_1_COL],
+            2: [self.sm_2.__str__(), SMValues.SM_2_POS, SMValues.SM_2_COL],
+            3: [self.sm_3.__str__(), SMValues.SM_3_POS, SMValues.SM_3_COL],
+            4: [self.sm_4.__str__(), SMValues.SM_4_POS, SMValues.SM_4_COL]
+        }
+
+    def key_input(self, key):
+        for sm in self.sine_modals.values():
+            sm.key_input(key)
+
+    def mouse_down(self):
+        for btn in self.sm_buttons:
+            btn.perform_operation()
+        for sm in self.sine_modals.values():
+            sm.mouse_down()
+
+    def mouse_up(self):
+        for sm in self.sine_modals.values():
+            sm.mouse_up()
+
+    def add_sine(self, sine_num):
+        sm, pos, col = self.get_sm_dic()[sine_num]
+        setattr(self, sm, SineModal(self, pos, sine_num, col))
+        self.sine_modals[sine_num] = getattr(self, sm)
+        self.sm_buttons[sine_num - 1].set_hidden(True)
+
+    def del_sine(self, sine_num):
+        sm, pos, col = self.get_sm_dic()[sine_num]
+        setattr(self, sm, None)
+        self.sine_modals[sine_num].clear_sine()
+        self.sine_modals.pop(sine_num)
+        self.sm_buttons[sine_num - 1].set_hidden(False)
+
+    def update(self):
+        for sm in self.sine_modals.values():
+            sm.update()
+
+    def render(self, screen: pg.Surface):
+        for btn in self.sm_buttons:
+            btn.render(screen)
+        for sm in self.sine_modals.values():
+            sm.render(screen)
 
 
 class SineModal:

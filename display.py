@@ -38,7 +38,7 @@ class SineDisplay:
         pg.draw.line(self.screen, Colours.GREY, (GameValues.DISPLAY_WIDTH - self.granularity, 0), (GameValues.DISPLAY_WIDTH - self.granularity, GameValues.DISPLAY_HEIGHT), 3)
 
         # sines
-        for num, modal in self.game.sine_modals.items():
+        for num, modal in self.game.get_active_sine_modals().items():
             dic = self.sm_screens[num]
             lp = 'last_pos'
             screen_on, screen_empty = self.get_screens(num)

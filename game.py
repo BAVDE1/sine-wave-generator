@@ -2,7 +2,7 @@ import time
 
 from interactable import BTNOperation, Button, ButtonToggle, Input, InputRange, InputOperation, Collection
 from constants import *
-from modal import SineModal
+from modal import SineModal, ModalPage
 from display import SineDisplay
 
 
@@ -23,19 +23,14 @@ class Game:
         self.final_screen = pg.display.get_surface()
 
         self.sine_display = SineDisplay(self, pg.Vector2(430, 100))
-
-        self.sm_1: SineModal | None = None
-        self.sm_2: SineModal | None = None
-        self.sm_3: SineModal | None = None
-        self.sm_4: SineModal | None = None
-        self.sine_modals = {}
-
-        kwargs = {'text_size': 20, 'outline': 2, 'margin': 15}
-        self.sm_1_btn = Button(Texts.NEW_SINE, SMValues.SM_1_POS, BTNOperation(self.add_sine, None, 1), colour=SMValues.SM_1_COL, **kwargs)
-        self.sm_2_btn = Button(Texts.NEW_SINE, SMValues.SM_2_POS, BTNOperation(self.add_sine, None, 2), colour=SMValues.SM_2_COL, **kwargs)
-        self.sm_3_btn = Button(Texts.NEW_SINE, SMValues.SM_3_POS, BTNOperation(self.add_sine, None, 3), colour=SMValues.SM_3_COL, **kwargs)
-        self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4), colour=SMValues.SM_4_COL, **kwargs)
-        self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
+        self.modal_pages = {i: ModalPage(i) for i in range(1, GameValues.PAGE_NUMBERS + 1)}
+        self.on_page = 1
+        self.pg_btns = [
+            ButtonToggle(f' {i} ', pg.Vector2(25 * i, 620), BTNOperation(self.change_page, num=i),
+                         text_size=16, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE, toggled_col=Colours.WHITE, override_size=pg.Vector2((21 + (8*(len(str(i))-1))), 22)
+                         ) for i in range(1, GameValues.PAGE_NUMBERS + 1)
+        ]
+        self.pg_btns[0].set_toggle(True)
 
         kwargs = {'update_live': True, 'text_size': 18}
         self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity), default_val=GameValues.MIN_GRAN, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, **kwargs)
@@ -49,7 +44,7 @@ class Game:
         for event in pg.event.get():
             # custom
             if event.type == CustomEvents.DEL_MODAL:
-                self.del_sine(event.num)
+                self.get_active_page().del_sine(event.num)
             if event.type == CustomEvents.CLEAR_MODAL:
                 self.sine_display.clear_screen(event.num)
 
@@ -58,8 +53,7 @@ class Game:
                 self.keys = pg.key.get_pressed()
                 for inpt in self.inputs:
                     inpt.key_input(event.key)
-                for sm in self.sine_modals.values():
-                    sm.key_input(event.key)
+                self.get_active_page().key_input(event.key)
 
             if event.type == pg.KEYUP:
                 self.keys = pg.key.get_pressed()
@@ -72,47 +66,35 @@ class Game:
             if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
                 for inpt in self.inputs:
                     inpt.mouse_down()
-                for btn in self.sm_buttons:
+                for btn in self.pg_btns:
                     btn.perform_operation()
-                for sm in self.sine_modals.values():
-                    sm.mouse_down()
+                self.get_active_page().mouse_down()
 
             if event.type == pg.MOUSEBUTTONUP and not pg.mouse.get_pressed()[0]:
                 for inpt in self.inputs:
                     inpt.mouse_up()
-                for sm in self.sine_modals.values():
-                    sm.mouse_up()
+                self.get_active_page().mouse_up()
 
-    def get_sm_dic(self):
-        return {
-            1: [self.sm_1.__str__(), SMValues.SM_1_POS, SMValues.SM_1_COL],
-            2: [self.sm_2.__str__(), SMValues.SM_2_POS, SMValues.SM_2_COL],
-            3: [self.sm_3.__str__(), SMValues.SM_3_POS, SMValues.SM_3_COL],
-            4: [self.sm_4.__str__(), SMValues.SM_4_POS, SMValues.SM_4_COL]
-        }
+    def change_page(self, num):
+        self.on_page = num
+        for i, btn in enumerate(self.pg_btns):
+            btn.set_toggle(i + 1 == num)
 
-    def add_sine(self, sine_num):
-        sm, pos, col = self.get_sm_dic()[sine_num]
-        setattr(self, sm, SineModal(self, pos, sine_num, col))
-        self.sine_modals[sine_num] = getattr(self, sm)
-        self.sm_buttons[sine_num - 1].set_hidden(True)
+    def get_active_page(self):
+        return self.modal_pages[self.on_page]
 
-    def del_sine(self, sine_num):
-        sm, pos, col = self.get_sm_dic()[sine_num]
-        setattr(self, sm, None)
-        self.sine_modals.pop(sine_num)
-        self.sm_buttons[sine_num - 1].set_hidden(False)
-        self.sine_display.clear_screen(sine_num)
+    def get_active_sine_modals(self):
+        return self.get_active_page().sine_modals
 
     def update(self):
         for inpt in self.inputs:
             inpt.update()
-        for sm in self.sine_modals.values():
-            sm.update()
+        for mp in self.modal_pages.values():
+            mp.update()
 
     def set_all_phase_div(self, val):
-        for sm in self.sine_modals.values():
-            sm.set_phase_div(val)
+        for mp in self.modal_pages.values():
+            mp.set_all_phase_div(val)
 
     def set_granularity(self, val):
         self.sine_display.granularity = val
@@ -133,10 +115,9 @@ class Game:
         # render here
         for inpt in self.inputs:
             inpt.render(self.canvas_screen)
-        for btn in self.sm_buttons:
+        for btn in self.pg_btns:
             btn.render(self.canvas_screen)
-        for sm in self.sine_modals.values():
-            sm.render(self.canvas_screen)
+        self.get_active_page().render(self.canvas_screen)
         self.sine_display.render(self.canvas_screen)
 
         # final
