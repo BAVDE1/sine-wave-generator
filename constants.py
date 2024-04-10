@@ -7,6 +7,7 @@ def get_middle(pos, width_1, width_2) -> int:
 
 class CustomEvents:
     DEL_MODAL = pg.event.custom_type()
+    CLEAR_MODAL = pg.event.custom_type()
 
 
 class Texts:
@@ -17,6 +18,7 @@ class Texts:
     ON = ' 1 '
     OFF = ' 0 '
     CLOSE = ' X '
+    CLEAR = ' C '
     NEW_SINE = '+ New Sine'
     GRANULARITY = 'Granularity'
     POINT_SIZE = 'Point Size'

@@ -9,6 +9,11 @@ def v(v=0):
     pass
 
 
+class ModalPage:
+    def __init__(self):
+        self.pos = pg.Vector2()
+
+
 class SineModal:
     def __init__(self, game, pos: pg.Vector2, num, colour=Colours.YELLOW):
         self.game = game
@@ -36,6 +41,8 @@ class SineModal:
                                       default_val=GameValues.MIN_PHASE, min_val=GameValues.MIN_PHASE, max_val=GameValues.MAX_PHASE, line_length=87, thumb_radius=5, **common_kw)
         self.all_inpts = [self.name_inpt, self.amp_inpt, self.freq_inpt, self.phase_inpt]
 
+        self.clear_btn = Button(Texts.CLEAR, pg.Vector2(188, 55), BTNOperation(self.clear_sine),
+                                colour=Colours.LIGHT_GREY, text_size=15, outline=2, mouse_offset=pos, override_size=pg.Vector2(21, 21))
         self.pause_btn = ButtonToggle(Texts.ON, pg.Vector2(188, 85), BTNOperation(self.toggle_pause),
                                       colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=15, toggled_text=Texts.OFF, outline=2, mouse_offset=pos)
         self.del_btn = Button(Texts.CLOSE, pg.Vector2(192, 0), BTNOperation(self.del_modal),
@@ -63,6 +70,7 @@ class SineModal:
     def mouse_down(self):
         for inpt in self.all_inpts:
             inpt.mouse_down()
+        self.clear_btn.perform_operation()
         self.pause_btn.perform_operation()
         self.del_btn.perform_operation()
 
@@ -72,6 +80,10 @@ class SineModal:
         self.amp_inpt.set_active(p)
         self.freq_inpt.set_active(p)
         self.phase_inpt.set_active(p)
+
+    def clear_sine(self):
+        event = pg.event.Event(CustomEvents.CLEAR_MODAL, num=self.num)
+        pg.event.post(event)
 
     def get_amp(self):
         return int(self.amp_inpt.get_value())
@@ -102,6 +114,7 @@ class SineModal:
         pg.draw.rect(self.screen, self.colour, self.get_rect(), 2)
         for inpt in self.all_inpts:
             inpt.render(self.screen)
+        self.clear_btn.render(self.screen)
         self.pause_btn.render(self.screen)
         self.del_btn.render(self.screen)
 

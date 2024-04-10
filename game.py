@@ -50,6 +50,8 @@ class Game:
             # custom
             if event.type == CustomEvents.DEL_MODAL:
                 self.del_sine(event.num)
+            if event.type == CustomEvents.CLEAR_MODAL:
+                self.sine_display.clear_screen(event.num)
 
             # key input
             if event.type == pg.KEYDOWN:
