@@ -7,7 +7,6 @@ def get_middle(pos, width_1, width_2) -> int:
 
 class CustomEvents:
     DEL_MODAL = pg.event.custom_type()
-    PAUSE_SINE = pg.event.custom_type()
 
 
 class Texts:
@@ -23,6 +22,7 @@ class Texts:
     POINT_SIZE = 'Point Size'
     LINE_SIZE = 'Line Size'
     PPF = 'Pixels / Frame'
+    PHASE_DIV = 'Phase Division'
 
 
 class GameValues:
@@ -50,6 +50,8 @@ class GameValues:
     MAX_LINE_SIZ = 10
     MIN_PPF = 1
     MAX_PPF = 40
+    MIN_PHASE_DIV = 1
+    MAX_PHASE_DIV = 10
 
     MIN_AMP = 2
     MIN_FREQ = 1
@@ -78,9 +80,9 @@ class Colours:
 
 class SMValues:
     SM_1_POS = pg.Vector2(10, 100)
-    SM_2_POS = pg.Vector2(10, 260)
-    SM_3_POS = pg.Vector2(10, 420)
-    SM_4_POS = pg.Vector2(10, 580)
+    SM_2_POS = pg.Vector2(10, 230)
+    SM_3_POS = pg.Vector2(10, 360)
+    SM_4_POS = pg.Vector2(10, 490)
 
     SM_1_COL = Colours.GREEN
     SM_2_COL = Colours.PINK

@@ -20,6 +20,7 @@ class SineModal:
         self.paused = False
         self.paused_time = 0
         self.old_freq = GameValues.MIN_FREQ
+        self.phase_div = 1
 
         margin = 10
         self.sine_circle = SineCircle(self, pg.Vector2(pos.x + self.size.x + margin, pos.y))
@@ -39,6 +40,9 @@ class SineModal:
                                       colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=15, toggled_text=Texts.OFF, outline=2, mouse_offset=pos)
         self.del_btn = Button(Texts.CLOSE, pg.Vector2(192, 0), BTNOperation(self.del_modal),
                               text_size=11, outline=2, colour=Colours.RED, override_size=pg.Vector2(18, 16), mouse_offset=pos)
+
+    def set_phase_div(self, val):
+        self.phase_div = val
 
     def del_modal(self):
         event = pg.event.Event(CustomEvents.DEL_MODAL, num=self.num)
@@ -69,9 +73,6 @@ class SineModal:
         self.freq_inpt.set_active(p)
         self.phase_inpt.set_active(p)
 
-        event = pg.event.Event(CustomEvents.PAUSE_SINE, num=self.num, paused=self.paused)
-        pg.event.post(event)
-
     def get_amp(self):
         return int(self.amp_inpt.get_value())
 
@@ -81,7 +82,7 @@ class SineModal:
     def get_sin(self, amp=None, cos=False):
         a = self.get_amp() if amp is None else amp
         f = self.get_freq()
-        p = int(self.phase_inpt.get_value()) / 2
+        p = int(self.phase_inpt.get_value()) / self.phase_div
         t = time.time() - self.paused_time
         return a * math.sin((f * t) + p) if not cos else a * math.cos((f * t) + p)
 

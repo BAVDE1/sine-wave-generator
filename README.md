@@ -2,7 +2,7 @@
 
 todo:
 
-- phase division inpt
+- (DONE) phase division inpt
 - clear btn on modal
 - n pages of modals
 - add all sines on page btn

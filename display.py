@@ -8,7 +8,7 @@ class SineDisplay:
         self.size = pg.Vector2(GameValues.DISPLAY_WIDTH, GameValues.DISPLAY_HEIGHT)
         self.rect = pg.Rect(pg.Vector2(0, 0), self.size)
         self.screen = pg.Surface(self.size)
-        self.sm_screens = {i: dict(paused=False, last_pos=pg.Vector2(0, 0), screen_a=self.get_default_screen(), screen_b=None) for i in range(1, 5)}
+        self.sm_screens = {i: dict(last_pos=pg.Vector2(0, 0), screen_a=self.get_default_screen(), screen_b=None) for i in range(1, 5)}
 
         self.granularity = 0
         self.point_size = 2
@@ -22,9 +22,6 @@ class SineDisplay:
         """ Returns on screen and empty screen keys """
         a, b = 'screen_a', 'screen_b'
         return [a, b] if self.sm_screens[num][a] is not None else [b, a]
-
-    def toggle_pause(self, num, paused):
-        self.sm_screens[num]['paused'] = paused
 
     def clear_screen(self, num):
         self.sm_screens[num][self.get_screens(num)[0]] = self.get_default_screen()
@@ -56,7 +53,7 @@ class SineDisplay:
                 dic[lp] = pg.Vector2(0, rect.center[1])
 
             # move
-            moved_pos = pg.Vector2(0 if dic['paused'] else -self.pixels_per_frame, 0)
+            moved_pos = pg.Vector2(0 if modal.paused else -self.pixels_per_frame, 0)
             self.screen.blit(dic[screen_on], moved_pos)
             dic[screen_empty] = self.get_default_screen()
             dic[screen_empty].blit(dic[screen_on], moved_pos)
