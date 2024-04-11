@@ -10,37 +10,29 @@ def v(v=0):
 
 
 class ModalPage:
-    def __init__(self, page_num):
+    def __init__(self, game, page_num):
+        self.game = game
         self.pos = pg.Vector2()
         self.page_num = page_num
+        self.col = getattr(SMValues, f'SM_COL_{self.page_num}')
 
-        self.sm_1: SineModal | None = None
-        self.sm_2: SineModal | None = None
-        self.sm_3: SineModal | None = None
-        self.sm_4: SineModal | None = None
+        self.sm_buttons = []
         self.sine_modals = {}
-
         kwargs = {'text_size': 20, 'outline': 2, 'margin': 15}
-        self.sm_1_btn = Button(Texts.NEW_SINE, SMValues.SM_1_POS, BTNOperation(self.add_sine, None, 1),
-                               colour=SMValues.SM_1_COL, **kwargs)
-        self.sm_2_btn = Button(Texts.NEW_SINE, SMValues.SM_2_POS, BTNOperation(self.add_sine, None, 2),
-                               colour=SMValues.SM_2_COL, **kwargs)
-        self.sm_3_btn = Button(Texts.NEW_SINE, SMValues.SM_3_POS, BTNOperation(self.add_sine, None, 3),
-                               colour=SMValues.SM_3_COL, **kwargs)
-        self.sm_4_btn = Button(Texts.NEW_SINE, SMValues.SM_4_POS, BTNOperation(self.add_sine, None, 4),
-                               colour=SMValues.SM_4_COL, **kwargs)
-        self.sm_buttons = [self.sm_1_btn, self.sm_2_btn, self.sm_3_btn, self.sm_4_btn]
-
-    def set_all_phase_div(self, val):
-        for sm in self.sine_modals.values():
-            sm.set_phase_div(val)
+        for i in range(1, 5):
+            sm_attr, col_attr, btn_attr = f'sm_{i}', f'col_{i}', f'sm_{i}_btn'
+            div = 1 - (.15 * i)
+            setattr(self, col_attr, (self.col[0] * div, self.col[1] * div, self.col[2] * div))
+            setattr(self, sm_attr, None)
+            setattr(self, btn_attr, Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, i), colour=getattr(self, col_attr), **kwargs))
+            self.sm_buttons.append(getattr(self, btn_attr))
 
     def get_sm_dic(self):
         return {
-            1: [self.sm_1.__str__(), SMValues.SM_1_POS, SMValues.SM_1_COL],
-            2: [self.sm_2.__str__(), SMValues.SM_2_POS, SMValues.SM_2_COL],
-            3: [self.sm_3.__str__(), SMValues.SM_3_POS, SMValues.SM_3_COL],
-            4: [self.sm_4.__str__(), SMValues.SM_4_POS, SMValues.SM_4_COL]
+            1: [self.sm_1.__str__(), SMValues.SM_1_POS, self.col_1],
+            2: [self.sm_2.__str__(), SMValues.SM_2_POS, self.col_2],
+            3: [self.sm_3.__str__(), SMValues.SM_3_POS, self.col_3],
+            4: [self.sm_4.__str__(), SMValues.SM_4_POS, self.col_4]
         }
 
     def key_input(self, key):
@@ -59,7 +51,7 @@ class ModalPage:
 
     def add_sine(self, sine_num):
         sm, pos, col = self.get_sm_dic()[sine_num]
-        setattr(self, sm, SineModal(self, pos, sine_num, col))
+        setattr(self, sm, SineModal(self.game, pos, sine_num, col, self.col))
         self.sine_modals[sine_num] = getattr(self, sm)
         self.sm_buttons[sine_num - 1].set_hidden(True)
 
@@ -82,22 +74,22 @@ class ModalPage:
 
 
 class SineModal:
-    def __init__(self, game, pos: pg.Vector2, num, colour=Colours.YELLOW):
+    def __init__(self, game, pos: pg.Vector2, num, colour=Colours.YELLOW, input_colour=Colours.YELLOW):
         self.game = game
         self.num = num
         self.pos = pos
         self.size = pg.Vector2(GameValues.MODAL_WIDTH, GameValues.MODAL_HEIGHT)
         self.colour = colour
+        self.input_colour = input_colour
         self.screen = pg.Surface(self.size)
         self.paused = False
         self.paused_time = 0
         self.old_freq = GameValues.MIN_FREQ
-        self.phase_div = 1
 
         margin = 10
         self.sine_circle = SineCircle(self, pg.Vector2(pos.x + self.size.x + margin, pos.y))
 
-        common_kw = {'colour': colour, 'mouse_offset': pos, 'text_size': 15}
+        common_kw = {'colour': input_colour, 'mouse_offset': pos, 'text_size': 15}
         self.name_inpt = Input('', pg.Vector2(6, -15), InputOperation(v),
                                default_val=Texts.GENERATOR + str(num), bg_col=Colours.BG_COL, max_value_chars=15, **common_kw)
         self.amp_inpt = InputRangeH(Texts.AMP, pg.Vector2(10, 30), InputOperation(v),
@@ -114,9 +106,6 @@ class SineModal:
                                       colour=Colours.GREEN, toggled_col=Colours.LIGHT_GREY, toggle_col=Colours.LIGHT_GREY, text_size=15, toggled_text=Texts.OFF, outline=2, mouse_offset=pos)
         self.del_btn = Button(Texts.CLOSE, pg.Vector2(192, 0), BTNOperation(self.del_modal),
                               text_size=11, outline=2, colour=Colours.RED, override_size=pg.Vector2(18, 16), mouse_offset=pos)
-
-    def set_phase_div(self, val):
-        self.phase_div = val
 
     def del_modal(self):
         event = pg.event.Event(CustomEvents.DEL_MODAL, num=self.num)
@@ -161,7 +150,7 @@ class SineModal:
     def get_sin(self, amp=None, cos=False):
         a = self.get_amp() if amp is None else amp
         f = self.get_freq()
-        p = int(self.phase_inpt.get_value()) / self.phase_div
+        p = int(self.phase_inpt.get_value()) / self.game.phase_div
         t = time.time() - self.paused_time
         return a * math.sin((f * t) + p) if not cos else a * math.cos((f * t) + p)
 

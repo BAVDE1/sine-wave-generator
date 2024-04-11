@@ -8,7 +8,9 @@ class SineDisplay:
         self.size = pg.Vector2(GameValues.DISPLAY_WIDTH, GameValues.DISPLAY_HEIGHT)
         self.rect = pg.Rect(pg.Vector2(0, 0), self.size)
         self.screen = pg.Surface(self.size)
-        self.sm_screens = {i: dict(last_pos=pg.Vector2(0, 0), screen_a=self.get_default_screen(), screen_b=None) for i in range(1, 5)}
+        self.sm_screens = {
+            i: dict(last_pos=pg.Vector2(0, 0), screen_a=self.get_default_screen(), screen_b=None) for i in range(1, 1 + (GameValues.PAGE_NUMBERS * 4))
+        }
 
         self.granularity = 0
         self.point_size = 2
@@ -39,6 +41,7 @@ class SineDisplay:
 
         # sines
         for num, modal in self.game.get_active_sine_modals().items():
+            num = num + (4 * self.game.on_page)
             dic = self.sm_screens[num]
             lp = 'last_pos'
             screen_on, screen_empty = self.get_screens(num)

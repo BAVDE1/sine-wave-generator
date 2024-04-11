@@ -23,7 +23,7 @@ class Game:
         self.final_screen = pg.display.get_surface()
 
         self.sine_display = SineDisplay(self, pg.Vector2(430, 100))
-        self.modal_pages = {i: ModalPage(i) for i in range(1, GameValues.PAGE_NUMBERS + 1)}
+        self.modal_pages = {i: ModalPage(self, i) for i in range(1, GameValues.PAGE_NUMBERS + 1)}
         self.on_page = 1
         self.pg_btns = [
             ButtonToggle(f' {i} ', pg.Vector2(25 * i, 620), BTNOperation(self.change_page, num=i),
@@ -31,13 +31,14 @@ class Game:
                          ) for i in range(1, GameValues.PAGE_NUMBERS + 1)
         ]
         self.pg_btns[0].set_toggle(True)
+        self.phase_div = 1
 
         kwargs = {'update_live': True, 'text_size': 18}
         self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity), default_val=GameValues.MIN_GRAN, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, **kwargs)
         self.point_inpt = InputRange(Texts.POINT_SIZE, pg.Vector2(950, 15), InputOperation(self.set_point_size), default_val=2, min_val=GameValues.MIN_POINT_SIZ, max_val=GameValues.MAX_POINT_SIZ, **kwargs)
         self.line_inpt = InputRange(Texts.LINE_SIZE, pg.Vector2(800, 15), InputOperation(self.set_line_size), default_val=3, min_val=GameValues.MIN_LINE_SIZ, max_val=GameValues.MAX_LINE_SIZ, **kwargs)
         self.ppf_inpt = InputRange(Texts.PPF, pg.Vector2(650, 15), InputOperation(self.set_ppf), default_val=1, min_val=GameValues.MIN_PPF, max_val=GameValues.MAX_PPF, **kwargs)
-        self.phase_div_inpt = InputRange(Texts.PHASE_DIV, pg.Vector2(100, 15), InputOperation(self.set_all_phase_div), default_val=GameValues.MIN_PHASE_DIV, min_val=GameValues.MIN_PHASE_DIV, max_val=GameValues.MAX_PHASE_DIV, **kwargs)
+        self.phase_div_inpt = InputRange(Texts.PHASE_DIV, pg.Vector2(100, 15), InputOperation(self.set_phase_div), default_val=GameValues.MIN_PHASE_DIV, min_val=GameValues.MIN_PHASE_DIV, max_val=GameValues.MAX_PHASE_DIV, **kwargs)
         self.inputs = [self.gran_inpt, self.point_inpt, self.line_inpt, self.ppf_inpt, self.phase_div_inpt]
 
     def events(self):
@@ -92,9 +93,8 @@ class Game:
         for mp in self.modal_pages.values():
             mp.update()
 
-    def set_all_phase_div(self, val):
-        for mp in self.modal_pages.values():
-            mp.set_all_phase_div(val)
+    def set_phase_div(self, val):
+        self.phase_div = val
 
     def set_granularity(self, val):
         self.sine_display.granularity = val

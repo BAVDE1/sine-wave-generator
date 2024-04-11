@@ -62,7 +62,7 @@ class GameValues:
     MAX_FREQ = 12
     MAX_PHASE = 15
 
-    PAGE_NUMBERS = 10
+    PAGE_NUMBERS = 8
 
 
 class Colours:
@@ -75,11 +75,14 @@ class Colours:
     DARKER_GREY = (10, 25, 25)
     BLACK = (0, 0, 0)
 
+    RED = (255, 60, 60)
+    ORANGE = (255, 140, 60)
     YELLOW = (255, 255, 0)
     GREEN = (100, 255, 100)
-    RED = (255, 100, 100)
-    PINK = (255, 100, 255)
     AQUA = (100, 255, 255)
+    BLUE = (70, 150, 255)
+    MAGENTA = (200, 0, 200)
+    PINK = (255, 100, 255)
 
 
 class SMValues:
@@ -88,7 +91,11 @@ class SMValues:
     SM_3_POS = pg.Vector2(10, 360)
     SM_4_POS = pg.Vector2(10, 490)
 
-    SM_1_COL = Colours.GREEN
-    SM_2_COL = Colours.PINK
-    SM_3_COL = Colours.AQUA
-    SM_4_COL = Colours.RED
+    SM_COL_1 = Colours.RED
+    SM_COL_2 = Colours.ORANGE
+    SM_COL_3 = Colours.YELLOW
+    SM_COL_4 = Colours.GREEN
+    SM_COL_5 = Colours.AQUA
+    SM_COL_6 = Colours.BLUE
+    SM_COL_7 = Colours.MAGENTA
+    SM_COL_8 = Colours.PINK
