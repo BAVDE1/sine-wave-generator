@@ -25,6 +25,8 @@ class Texts:
     LINE_SIZE = 'Line Size'
     PPF = 'Pixels / Frame'
     PHASE_DIV = 'Phase Division'
+    RENDER_PAGE = ' Render: page '
+    RENDER_ALL = ' Render: all'
 
 
 class GameValues:
@@ -47,9 +49,9 @@ class GameValues:
     MIN_GRAN = 1
     MAX_GRAN = 40
     MIN_POINT_SIZ = 0
-    MAX_POINT_SIZ = 10
+    MAX_POINT_SIZ = 15
     MIN_LINE_SIZ = 0
-    MAX_LINE_SIZ = 14
+    MAX_LINE_SIZ = 15
     MIN_PPF = 1
     MAX_PPF = 40
     MIN_PHASE_DIV = 1

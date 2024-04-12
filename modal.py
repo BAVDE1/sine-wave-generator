@@ -21,14 +21,12 @@ class ModalPage:
 
         # generate n (1 to 4) properties: sm_n, col_n, sm_n_btn
         self.begin_n = 1 + ((page_num - 1) * 4)
-        for i, modal_n in enumerate(range(self.begin_n, self.begin_n + 4)):
-            i += 1
+        for i, modal_n in enumerate(range(self.begin_n, self.begin_n + 4), 1):
             sm_attr, col_attr, btn_attr = f'sm_{i}', f'col_{i}', f'sm_{modal_n}_btn'
-            div = 1 - (.15 * i)
+            div = 1 - (.15 * (i - 1))
             setattr(self, col_attr, (self.col[0] * div, self.col[1] * div, self.col[2] * div))
             setattr(self, sm_attr, None)
-            setattr(self, btn_attr,
-                    Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, modal_n), colour=getattr(self, col_attr), text_size=20, outline=2, margin=15))
+            setattr(self, btn_attr, Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, modal_n), colour=getattr(self, col_attr), text_size=20, outline=2, margin=15))
             self.sm_buttons.append(getattr(self, btn_attr))
 
     def get_sm_dic(self):
@@ -54,7 +52,6 @@ class ModalPage:
             sm.mouse_up()
 
     def add_sine(self, sine_num):
-        print(self.get_sm_dic())
         sm, pos, col = self.get_sm_dic()[sine_num]
         setattr(self, sm, SineModal(self.game, pos, sine_num, col, self.col))
         self.sine_modals[sine_num] = getattr(self, sm)

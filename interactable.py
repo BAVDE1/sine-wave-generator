@@ -192,10 +192,10 @@ class ButtonToggle(Button):
                  text_size=30, colour=(255, 255, 0), text_margin=5,
                  override_size: pg.Vector2 | None = None, outline=0,
                  hidden=False, active=True, mouse_offset=pg.Vector2(0, 0),
-                 toggle_col=(255, 255, 255), toggled_text="", toggled_col=None):
+                 toggle_col=(255, 255, 255), toggled_text="", toggled_col=None, default_toggle=False):
         self.toggle_col = toggle_col
         self.toggled_col = toggled_col if toggled_col is not None else colour
-        self.toggled = False
+        self.toggled = default_toggle
         self.toggled_text = toggled_text if toggled_text else text
         super().__init__(text, pos, operation, text_size, colour, text_margin, override_size, outline, hidden, active, mouse_offset)
 

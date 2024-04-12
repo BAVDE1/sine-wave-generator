@@ -27,19 +27,15 @@ class Game:
         self.phase_div = 1
         self.on_page = 1
         self.all_btns = []
-        self.pg_btns = []
 
         # add page buttons
         pg_btn_y, override_siz, text_siz = 620, pg.Vector2(21, 22), 16
         for i in range(1, GameValues.PAGE_NUMBERS + 1):
             btn = ButtonToggle(f' {i} ', pg.Vector2(25 * i, 620), BTNOperation(self.change_page, num=i),
-                               text_size=text_siz, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE,
-                               toggled_col=Colours.WHITE, override_size=override_siz)
-            btn.set_toggle(i == 1)
+                               text_size=text_siz, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE, toggled_col=Colours.WHITE, override_size=override_siz, default_toggle=i == 1)
             self.all_btns.append(btn)
-            self.pg_btns.append(btn)
-        render_page_btn = ButtonToggle(' Render: page ', pg.Vector2(225, pg_btn_y), BTNOperation(self.toggle_render_type),
-                                       text_size=text_siz, colour=Colours.LIGHT_GREY, outline=2, toggle_col=Colours.LIGHT_GREY, toggled_text=' Render: all ')
+        render_page_btn = ButtonToggle(Texts.RENDER_PAGE, pg.Vector2(225, pg_btn_y), BTNOperation(self.toggle_render_type),
+                                       text_size=text_siz, colour=Colours.LIGHT_GREY, outline=2, toggle_col=Colours.LIGHT_GREY, toggled_text=Texts.RENDER_ALL)
         self.all_btns.append(render_page_btn)
         self.render_all = False
 
@@ -88,12 +84,11 @@ class Game:
 
     def change_page(self, num):
         self.on_page = num
-        for i, btn in enumerate(self.pg_btns):
-            btn.set_toggle(i + 1 == num)
+        for i, btn in enumerate(self.all_btns[:GameValues.PAGE_NUMBERS], 1):
+            btn.set_toggle(i == num)
 
     def toggle_render_type(self):
         self.render_all = not self.render_all
-        print(self.render_all)
 
     def get_active_page(self):
         return self.modal_pages[self.on_page]

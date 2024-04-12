@@ -9,7 +9,7 @@ class SineDisplay:
         self.rect = pg.Rect(pg.Vector2(0, 0), self.size)
         self.screen = pg.Surface(self.size)
         self.sm_screens = {
-            i: dict(last_pos=pg.Vector2(0, 0), screen_a=self.get_default_screen(), screen_b=None) for i in range(1, 1 + (GameValues.PAGE_NUMBERS * 4))
+            i: dict(last_pos=pg.Vector2(0, 0), screen=self.get_default_screen()) for i in range(1, 1 + (GameValues.PAGE_NUMBERS * 4))
         }
 
         self.granularity = 0
@@ -20,13 +20,8 @@ class SineDisplay:
     def get_default_screen(self):
         return pg.Surface(self.size, pg.SRCALPHA)
 
-    def get_screens(self, num):
-        """ Returns on screen and empty screen keys """
-        a, b = 'screen_a', 'screen_b'
-        return [a, b] if self.sm_screens[num][a] is not None else [b, a]
-
     def clear_screen(self, num):
-        self.sm_screens[num][self.get_screens(num)[0]] = self.get_default_screen()
+        self.sm_screens[num]['screen'] = self.get_default_screen()
         self.sm_screens[num]['last_pos'] = pg.Vector2(0, 0)
 
     def render(self, screen: pg.Surface):
@@ -43,23 +38,24 @@ class SineDisplay:
         for num, modal in self.game.get_active_sine_modals().items():
             dic = self.sm_screens[num]
             lp = 'last_pos'
-            screen_on, screen_empty = self.get_screens(num)
+            sc = 'screen'
 
             # draw
             if self.granularity <= dic[lp].x:
                 rect = pg.Rect(self.rect.midright[0] - self.point_size, self.rect.midright[1] + modal.get_sin(), self.point_size, self.point_size)
-                pg.draw.rect(dic[screen_on], modal.colour, rect)
+                pg.draw.rect(dic[sc], modal.colour, rect)  # point
+                # line
                 if dic[lp].y != 0:
                     ps = self.point_size / 2
-                    pg.draw.line(dic[screen_on], modal.colour, (GameValues.DISPLAY_WIDTH - dic[lp].x - ps, dic[lp].y), rect.center, self.line_thickness)
+                    pg.draw.line(dic[sc], modal.colour, (GameValues.DISPLAY_WIDTH - dic[lp].x - ps, dic[lp].y), rect.center, self.line_thickness)
                 dic[lp] = pg.Vector2(0, rect.center[1])
 
             # move
             moved_pos = pg.Vector2(0 if modal.paused else -self.pixels_per_frame, 0)
-            self.screen.blit(dic[screen_on], moved_pos)
-            dic[screen_empty] = self.get_default_screen()
-            dic[screen_empty].blit(dic[screen_on], moved_pos)
-            dic[screen_on] = None
+            self.screen.blit(dic[sc], moved_pos)
+            next_scrn = self.get_default_screen()
+            next_scrn.blit(dic[sc], moved_pos)
+            dic[sc] = next_scrn
             dic[lp].x -= moved_pos.x
 
         pg.draw.rect(self.screen, Colours.WHITE, self.rect, 3)
