@@ -24,14 +24,24 @@ class Game:
 
         self.sine_display = SineDisplay(self, pg.Vector2(430, 100))
         self.modal_pages = {i: ModalPage(self, i) for i in range(1, GameValues.PAGE_NUMBERS + 1)}
-        self.on_page = 1
-        self.pg_btns = [
-            ButtonToggle(f' {i} ', pg.Vector2(25 * i, 620), BTNOperation(self.change_page, num=i),
-                         text_size=16, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE, toggled_col=Colours.WHITE, override_size=pg.Vector2((21 + (8*(len(str(i))-1))), 22)
-                         ) for i in range(1, GameValues.PAGE_NUMBERS + 1)
-        ]
-        self.pg_btns[0].set_toggle(True)
         self.phase_div = 1
+        self.on_page = 1
+        self.all_btns = []
+        self.pg_btns = []
+
+        # add page buttons
+        pg_btn_y, override_siz, text_siz = 620, pg.Vector2(21, 22), 16
+        for i in range(1, GameValues.PAGE_NUMBERS + 1):
+            btn = ButtonToggle(f' {i} ', pg.Vector2(25 * i, 620), BTNOperation(self.change_page, num=i),
+                               text_size=text_siz, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE,
+                               toggled_col=Colours.WHITE, override_size=override_siz)
+            btn.set_toggle(i == 1)
+            self.all_btns.append(btn)
+            self.pg_btns.append(btn)
+        render_page_btn = ButtonToggle(' Render: page ', pg.Vector2(225, pg_btn_y), BTNOperation(self.toggle_render_type),
+                                       text_size=text_siz, colour=Colours.LIGHT_GREY, outline=2, toggle_col=Colours.LIGHT_GREY, toggled_text=' Render: all ')
+        self.all_btns.append(render_page_btn)
+        self.render_all = False
 
         kwargs = {'update_live': True, 'text_size': 18}
         self.gran_inpt = InputRange(Texts.GRANULARITY, pg.Vector2(1100, 15), InputOperation(self.set_granularity), default_val=GameValues.MIN_GRAN, min_val=GameValues.MIN_GRAN, max_val=GameValues.MAX_GRAN, **kwargs)
@@ -67,7 +77,7 @@ class Game:
             if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
                 for inpt in self.inputs:
                     inpt.mouse_down()
-                for btn in self.pg_btns:
+                for btn in self.all_btns:
                     btn.perform_operation()
                 self.get_active_page().mouse_down()
 
@@ -81,11 +91,26 @@ class Game:
         for i, btn in enumerate(self.pg_btns):
             btn.set_toggle(i + 1 == num)
 
+    def toggle_render_type(self):
+        self.render_all = not self.render_all
+        print(self.render_all)
+
     def get_active_page(self):
         return self.modal_pages[self.on_page]
 
+    def get_active_pages(self):
+        pgs = []
+        if not self.render_all:  # one page
+            pgs.append(self.get_active_page())
+        else:  # all pages
+            for mp in self.modal_pages.values():
+                pgs.append(mp)
+        return pgs
+
     def get_active_sine_modals(self):
-        return self.get_active_page().sine_modals
+        return {
+            i: sm for mp in self.get_active_pages() for i, sm in mp.sine_modals.items()
+        }
 
     def update(self):
         for inpt in self.inputs:
@@ -115,7 +140,7 @@ class Game:
         # render here
         for inpt in self.inputs:
             inpt.render(self.canvas_screen)
-        for btn in self.pg_btns:
+        for btn in self.all_btns:
             btn.render(self.canvas_screen)
         self.get_active_page().render(self.canvas_screen)
         self.sine_display.render(self.canvas_screen)

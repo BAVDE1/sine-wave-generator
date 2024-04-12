@@ -49,7 +49,7 @@ class GameValues:
     MIN_POINT_SIZ = 0
     MAX_POINT_SIZ = 10
     MIN_LINE_SIZ = 0
-    MAX_LINE_SIZ = 10
+    MAX_LINE_SIZ = 14
     MIN_PPF = 1
     MAX_PPF = 40
     MIN_PHASE_DIV = 1
@@ -60,7 +60,7 @@ class GameValues:
     MIN_PHASE = 0
     MAX_AMP = 260
     MAX_FREQ = 12
-    MAX_PHASE = 15
+    MAX_PHASE = 31
 
     PAGE_NUMBERS = 8
 

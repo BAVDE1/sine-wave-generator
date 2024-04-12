@@ -41,7 +41,6 @@ class SineDisplay:
 
         # sines
         for num, modal in self.game.get_active_sine_modals().items():
-            num = num + (4 * self.game.on_page)
             dic = self.sm_screens[num]
             lp = 'last_pos'
             screen_on, screen_empty = self.get_screens(num)

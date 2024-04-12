@@ -18,21 +18,25 @@ class ModalPage:
 
         self.sm_buttons = []
         self.sine_modals = {}
-        kwargs = {'text_size': 20, 'outline': 2, 'margin': 15}
-        for i in range(1, 5):
-            sm_attr, col_attr, btn_attr = f'sm_{i}', f'col_{i}', f'sm_{i}_btn'
+
+        # generate n (1 to 4) properties: sm_n, col_n, sm_n_btn
+        self.begin_n = 1 + ((page_num - 1) * 4)
+        for i, modal_n in enumerate(range(self.begin_n, self.begin_n + 4)):
+            i += 1
+            sm_attr, col_attr, btn_attr = f'sm_{i}', f'col_{i}', f'sm_{modal_n}_btn'
             div = 1 - (.15 * i)
             setattr(self, col_attr, (self.col[0] * div, self.col[1] * div, self.col[2] * div))
             setattr(self, sm_attr, None)
-            setattr(self, btn_attr, Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, i), colour=getattr(self, col_attr), **kwargs))
+            setattr(self, btn_attr,
+                    Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, modal_n), colour=getattr(self, col_attr), text_size=20, outline=2, margin=15))
             self.sm_buttons.append(getattr(self, btn_attr))
 
     def get_sm_dic(self):
         return {
-            1: [self.sm_1.__str__(), SMValues.SM_1_POS, self.col_1],
-            2: [self.sm_2.__str__(), SMValues.SM_2_POS, self.col_2],
-            3: [self.sm_3.__str__(), SMValues.SM_3_POS, self.col_3],
-            4: [self.sm_4.__str__(), SMValues.SM_4_POS, self.col_4]
+            self.begin_n: [self.sm_1.__str__(), SMValues.SM_1_POS, self.col_1],
+            self.begin_n + 1: [self.sm_2.__str__(), SMValues.SM_2_POS, self.col_2],
+            self.begin_n + 2: [self.sm_3.__str__(), SMValues.SM_3_POS, self.col_3],
+            self.begin_n + 3: [self.sm_4.__str__(), SMValues.SM_4_POS, self.col_4]
         }
 
     def key_input(self, key):
@@ -50,17 +54,18 @@ class ModalPage:
             sm.mouse_up()
 
     def add_sine(self, sine_num):
+        print(self.get_sm_dic())
         sm, pos, col = self.get_sm_dic()[sine_num]
         setattr(self, sm, SineModal(self.game, pos, sine_num, col, self.col))
         self.sine_modals[sine_num] = getattr(self, sm)
-        self.sm_buttons[sine_num - 1].set_hidden(True)
+        self.sm_buttons[sine_num - self.begin_n].set_hidden(True)
 
     def del_sine(self, sine_num):
         sm, pos, col = self.get_sm_dic()[sine_num]
         setattr(self, sm, None)
         self.sine_modals[sine_num].clear_sine()
         self.sine_modals.pop(sine_num)
-        self.sm_buttons[sine_num - 1].set_hidden(False)
+        self.sm_buttons[sine_num - self.begin_n].set_hidden(False)
 
     def update(self):
         for sm in self.sine_modals.values():

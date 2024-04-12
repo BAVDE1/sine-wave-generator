@@ -6,5 +6,5 @@ todo:
 - (DONE) clear btn on modal
 - (DONE) n pages of modals
 - add all sines on page btn
-- render selected page or all pages
+- (DONE) render selected page or all pages
 - universal modal (page & all)
