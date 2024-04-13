@@ -1,4 +1,5 @@
 import pygame as pg
+from pygame import Vector2 as Vec2
 
 
 def get_middle(pos, width_1, width_2) -> int:
