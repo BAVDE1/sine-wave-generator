@@ -6,4 +6,4 @@ todo:
 - (DONE) clear btn on modal
 - (DONE) n pages of modals
 - (DONE) render selected page or all pages
-- universal modal (page & all)
+- (DONE) universal modal

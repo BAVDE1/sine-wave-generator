@@ -19,15 +19,14 @@ class ModalPage:
         self.sm_buttons = []
         self.sine_modals = {}
 
-        # generate n (1 to 4) properties: sm_n, col_n, sm_n_btn
+        # generate n (1 to 4) properties: sm_n, col_n & btn
         self.begin_n = 1 + ((page_num - 1) * 4)
         for i, modal_n in enumerate(range(self.begin_n, self.begin_n + 4), 1):
-            sm_attr, col_attr, btn_attr = f'sm_{i}', f'col_{i}', f'sm_{modal_n}_btn'
+            sm_attr, col_attr = f'sm_{i}', f'col_{i}'
             div = 1 - (.15 * (i - 1))
             setattr(self, col_attr, (self.col[0] * div, self.col[1] * div, self.col[2] * div))
             setattr(self, sm_attr, None)
-            setattr(self, btn_attr, Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, modal_n), colour=getattr(self, col_attr), text_size=20, outline=2, margin=15))
-            self.sm_buttons.append(getattr(self, btn_attr))
+            self.sm_buttons.append(Button(Texts.NEW_SINE, getattr(SMValues, f'SM_{i}_POS'), BTNOperation(self.add_sine, None, modal_n), colour=getattr(self, col_attr), text_size=20, outline=2, margin=15))
 
     def get_sm_dic(self):
         return {
@@ -76,31 +75,34 @@ class ModalPage:
 
 
 class SineModal:
-    def __init__(self, game, pos: Vec2, value, colour=Colours.YELLOW, input_colour=Colours.YELLOW, circle=True):
+    def __init__(self, game, pos: Vec2, value, colour=Colours.YELLOW, input_colour=None, circle=True):
         self.game = game
         self.value = value
         self.pos = pos
         self.size = Vec2(GameValues.MODAL_WIDTH, GameValues.MODAL_HEIGHT)
         self.colour = colour
-        self.input_colour = input_colour
+        self.input_colour = colour if input_colour is None else input_colour
         self.screen = pg.Surface(self.size)
         self.paused = False
         self.paused_time = 0
-        self.old_freq = GameValues.MIN_FREQ
+
+        self.amp = 0
+        self.freq = 0
+        self.phase = 0
 
         if circle:
             margin = 10
             self.sine_circle = SineCircle(self, Vec2(pos.x + self.size.x + margin, pos.y))
 
-        common_kw = {'colour': input_colour, 'mouse_offset': pos, 'text_size': 15}
+        common_kw = {'colour': self.input_colour, 'mouse_offset': pos, 'text_size': 15}
         self.name_inpt = Input('', Vec2(6, -15), InputOperation(v),
                                default_val=Texts.GENERATOR + str(value), bg_col=Colours.BG_COL, max_value_chars=15, **common_kw)
-        self.amp_inpt = InputRangeH(Texts.AMP, Vec2(10, 30), InputOperation(v),
-                                    default_val=GameValues.MAX_AMP / 2, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, **common_kw)
-        self.freq_inpt = InputRangeH(Texts.FREQ, Vec2(10, 60), InputOperation(v),
-                                     default_val=1, min_val=self.old_freq, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, **common_kw)
-        self.phase_inpt = InputRangeH(Texts.PHASE, Vec2(10, 90), InputOperation(v),
-                                      default_val=GameValues.MIN_PHASE, min_val=GameValues.MIN_PHASE, max_val=GameValues.MAX_PHASE, line_length=87, thumb_radius=5, **common_kw)
+        self.amp_inpt = InputRangeH(Texts.AMP, Vec2(10, 30), InputOperation(self.set_amp),
+                                    default_val=GameValues.MAX_AMP / 2, min_val=GameValues.MIN_AMP, max_val=GameValues.MAX_AMP, line_length=97, thumb_radius=5, update_live=True, **common_kw)
+        self.freq_inpt = InputRangeH(Texts.FREQ, Vec2(10, 60), InputOperation(self.set_freq),
+                                     default_val=1, min_val=GameValues.MIN_FREQ, max_val=GameValues.MAX_FREQ, line_length=99, thumb_radius=5, update_live=True, **common_kw)
+        self.phase_inpt = InputRangeH(Texts.PHASE, Vec2(10, 90), InputOperation(self.set_phase),
+                                      default_val=GameValues.MIN_PHASE, min_val=GameValues.MIN_PHASE, max_val=GameValues.MAX_PHASE, line_length=87, thumb_radius=5, update_live=True, **common_kw)
         self.all_inpts = [self.name_inpt, self.amp_inpt, self.freq_inpt, self.phase_inpt]
 
         self.clear_btn = Button(Texts.CLEAR, Vec2(188, 55), BTNOperation(self.clear_sine), colour=Colours.LIGHT_GREY, text_size=15, outline=2, mouse_offset=pos, override_size=Vec2(21, 21))
@@ -142,16 +144,22 @@ class SineModal:
         event = pg.event.Event(CustomEvents.CLEAR_MODAL, num=self.value)
         pg.event.post(event)
 
-    def get_amp(self):
-        return int(self.amp_inpt.get_value())
+    def set_amp(self, val):
+        self.amp = int(val)
 
-    def get_freq(self):
-        return int(self.freq_inpt.get_value())
+    def set_freq(self, val):
+        self.freq = int(val)
+
+    def set_phase(self, val):
+        self.phase = int(val)
+
+    def get_phase(self):
+        return self.phase / self.game.phase_div
 
     def get_sin(self, amp=None, cos=False):
-        a = self.get_amp() if amp is None else amp
-        f = self.get_freq()
-        p = int(self.phase_inpt.get_value()) / self.game.phase_div
+        a = self.amp if amp is None else amp
+        f = self.freq
+        p = self.get_phase()
         t = time.time() - self.paused_time
         return a * math.sin((f * t) + p) if not cos else a * math.cos((f * t) + p)
 
@@ -190,7 +198,7 @@ class SineCircle:
         self.font = pg.font.SysFont(GameValues.FONT, 13)
 
     def get_radius(self):
-        perc = (self.modal.get_amp() - GameValues.MIN_AMP) / (GameValues.MAX_AMP - GameValues.MIN_AMP)
+        perc = (self.modal.amp - GameValues.MIN_AMP) / (GameValues.MAX_AMP - GameValues.MIN_AMP)
         amp = GameValues.MIN_RADIUS + (perc * (GameValues.MAX_RADIUS - GameValues.MIN_RADIUS))
         return amp
 

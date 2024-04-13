@@ -30,12 +30,11 @@ class Game:
         self.all_btns = []
 
         # add page buttons
-        pg_btn_y, override_siz, text_siz = 620, Vec2(21, 22), 16
         for i in range(1, GameValues.PAGE_NUMBERS + 1):
-            self.all_btns.append(ButtonToggle(f' {i} ', Vec2(25 * i, 620), BTNOperation(self.change_page, num=i),
-                                              text_size=text_siz, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE, toggled_col=Colours.WHITE, override_size=override_siz, default_toggle=i == 1))
-        render_page_btn = ButtonToggle(Texts.RENDER_PAGE, Vec2(225, pg_btn_y), BTNOperation(self.toggle_render_type),
-                                       text_size=text_siz, colour=Colours.LIGHT_GREY, outline=2, toggle_col=Colours.LIGHT_GREY, toggled_text=Texts.RENDER_ALL)
+            self.all_btns.append(ButtonToggle(f' {i} ', Vec2(5 + (25 * (i-1)), 620), BTNOperation(self.change_page, num=i),
+                                              text_size=16, colour=Colours.GREY, outline=2, toggle_col=Colours.WHITE, toggled_col=Colours.WHITE, override_size=Vec2(21, 22), default_toggle=i == 1))
+        render_page_btn = ButtonToggle(Texts.RENDER_PAGE, Vec2(205, 620), BTNOperation(self.toggle_render_type),
+                                       text_size=16, colour=Colours.LIGHT_GREY, outline=2, toggle_col=Colours.LIGHT_GREY, toggled_text=Texts.RENDER_ALL)
         self.all_btns.append(render_page_btn)
         self.render_all = False
 
@@ -47,11 +46,14 @@ class Game:
         self.phase_div_inpt = InputRange(Texts.PHASE_DIV, Vec2(100, 15), InputOperation(self.set_phase_div), default_val=GameValues.MIN_PHASE_DIV, min_val=GameValues.MIN_PHASE_DIV, max_val=GameValues.MAX_PHASE_DIV, **kwargs)
         self.inputs = [self.gran_inpt, self.point_inpt, self.line_inpt, self.ppf_inpt, self.phase_div_inpt]
 
-        # universal
-        self.universal_modal = SineModal(self, Vec2(10, 670), 'universal', circle=False)
+        # universal (overrides all operations with custom ones)
+        self.universal_modal = SineModal(self, Vec2(10, 660), 'universal', circle=False, colour=Colours.LIGHT_GREY)
         self.universal_modal.del_btn.operation = BTNOperation(self.delete_all)
         self.universal_modal.clear_btn.operation = BTNOperation(self.clear_all)
         self.universal_modal.pause_btn.operation = BTNOperation(self.toggle_pause_all)
+        self.universal_modal.amp_inpt.operation = InputOperation(self.set_all_amp)
+        self.universal_modal.freq_inpt.operation = InputOperation(self.set_all_freq)
+        self.universal_modal.phase_inpt.operation = InputOperation(self.set_all_phase)
 
     def events(self):
         for event in pg.event.get():
@@ -156,6 +158,21 @@ class Game:
     def toggle_pause_all(self):
         for sm in self.get_sine_modals(False).values():
             sm.toggle_pause(self.universal_modal.pause_btn.toggled)
+
+    def set_all_amp(self, val):
+        for sm in self.get_sine_modals(False).values():
+            sm.amp_inpt.set_value(val)
+            sm.set_amp(val)
+
+    def set_all_freq(self, val):
+        for sm in self.get_sine_modals(False).values():
+            sm.freq_inpt.set_value(val)
+            sm.set_freq(val)
+
+    def set_all_phase(self, val):
+        for sm in self.get_sine_modals(False).values():
+            sm.phase_inpt.set_value(val)
+            sm.set_phase(val)
 
     def render(self):
         self.final_screen.fill(Colours.BG_COL)
