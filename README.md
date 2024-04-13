@@ -2,6 +2,10 @@
 
 Generates sine waves and displays them on a screen.
 
+**Run `main.py` (made with python 3.11)**
+
+---
+
 8 different coloured pages of 4 modals each. 
 
 Each modal generates a separate sine wave in its respective colour. Modals have change-able variables including:
@@ -27,6 +31,8 @@ The display screen on which the modals' waves will render have a multitude of se
 The display screen can render either only the currently selected page or all pages (i.e. all active modals).
 
 Note: this is python, so it will drop frames when more waves are being rendered at the same time.
+
+---
 
 ### dev stuff
 
