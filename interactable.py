@@ -205,7 +205,7 @@ class ButtonToggle(Button):
     def perform_operation(self):
         if self.is_mouse_in_bounds() and not self._hidden and self._active:
             self.toggled = not self.toggled
-        super().perform_operation()
+            self.operation.perform_operation()
 
     def set_toggle(self, val=None):
         val = val if val is not None else not self.toggled
